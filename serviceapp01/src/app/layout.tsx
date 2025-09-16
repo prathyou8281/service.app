@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import TopNav from "@/components/nav";      // ✅ import your TopNav component
+import Footer from "@/components/footer";  // ✅ import your Footer component
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <TopNav />         {/* ✅ Navbar always on top */}
+        <main className="min-h-[60vh]">{children}</main>
+        <Footer brandName="Your Brand" /> {/* ✅ Footer always at bottom */}
       </body>
     </html>
   );
