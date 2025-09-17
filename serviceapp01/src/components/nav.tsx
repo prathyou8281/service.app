@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function TopNav({
@@ -13,11 +14,11 @@ export default function TopNav({
   const [open, setOpen] = useState(false);
 
   // Static labels only (no routes)
-  const navItems: { label: string }[] = [
-    { label: "Home" },
-    { label: "Products" },
-    { label: "About" },
-    { label: "Contact" },
+  const navItems: { label: string; href: string }[] = [
+    { label: "Home", href: "/home" },
+    { label: "Products", href: "/products" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
   ];
 
   return (
@@ -26,7 +27,7 @@ export default function TopNav({
         className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8"
         aria-label="Top Navigation"
       >
-        {/* Left: Logo (no link) */}
+        {/* Left: Logo */}
         <div className="flex items-center gap-3" aria-label="Brand">
           <Image
             src={logoSrc}
@@ -41,36 +42,36 @@ export default function TopNav({
           </span>
         </div>
 
-        {/* Center: Static nav items */}
+        {/* Center: Nav items */}
         <div className="mx-auto hidden items-center gap-6 md:flex">
           {navItems.map((item) => (
-            <button
+            <Link
               key={item.label}
-              type="button"
+              href={item.href}
               className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
             >
               {item.label}
-            </button>
+            </Link>
           ))}
         </div>
 
-        {/* Right: Auth buttons */}
+        {/* Right: Auth links */}
         <div className="ml-auto hidden items-center gap-3 md:flex">
-          <button
-            type="button"
+          <Link
+            href="/user/login"
             className="rounded-xl border border-black/10 px-3 py-1.5 text-sm font-medium text-foreground/90 shadow-sm transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5"
           >
             Login
-          </button>
-          <button
-            type="button"
+          </Link>
+          <Link
+            href="/user/register"
             className="rounded-xl bg-indigo-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             Register
-          </button>
+          </Link>
         </div>
 
-        {/* Mobile: Menu button */}
+        {/* Mobile: Menu toggle */}
         <div className="ml-auto md:hidden">
           <button
             onClick={() => setOpen((v) => !v)}
@@ -102,7 +103,7 @@ export default function TopNav({
         </div>
       </nav>
 
-      {/* Mobile menu panel (static buttons) */}
+      {/* Mobile menu panel */}
       <div
         id="mobile-menu"
         className={`md:hidden ${
@@ -112,27 +113,27 @@ export default function TopNav({
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-1">
             {navItems.map((item) => (
-              <button
+              <Link
                 key={item.label}
-                type="button"
+                href={item.href}
                 className="rounded-lg px-2 py-2 text-left text-sm font-medium text-foreground/80 transition-colors hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5"
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
             <div className="mt-2 flex items-center gap-2 pt-2">
-              <button
-                type="button"
+              <Link
+                href="/user/login"
                 className="flex-1 rounded-lg border border-black/10 px-3 py-2 text-center text-sm font-medium text-foreground/90 shadow-sm transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5"
               >
                 Login
-              </button>
-              <button
-                type="button"
+              </Link>
+              <Link
+                href="/user/register"
                 className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
               >
                 Register
-              </button>
+              </Link>
             </div>
           </div>
         </div>

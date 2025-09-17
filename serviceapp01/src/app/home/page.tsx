@@ -1,6 +1,8 @@
 import Image from "next/image";
-import TopNav from "../components/nav";
-import Footer from "../components/footer";
+import TopNav from "../components/user/page"
+import LoginPage from "../components/user/page"
+
+
 
 export default function Home() {
   return (
@@ -8,8 +10,7 @@ export default function Home() {
      
    
 
-    <main>Main</main>
-
+   
     </div>
   );
 }
