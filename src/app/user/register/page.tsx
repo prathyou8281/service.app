@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-  import { useRouter } from "next/navigation";
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -9,7 +9,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
 
-  const handleRegister = (e) => {
+  // Fix: type the event
+  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name || !email || !password || !confirmPassword) {
       alert("Please fill all fields!");
@@ -23,7 +24,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center ">
+    <div className="h-screen w-full flex items-center justify-center">
       <div className="bg-white/20 backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-96">
         <h1 className="text-4xl font-extrabold text-center text-white mb-8">
           Create Account
