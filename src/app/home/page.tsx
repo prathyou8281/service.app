@@ -1,64 +1,141 @@
+"use client";
+
 import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 
+export default function Nav({
+  logoSrc = "/images/logo.webp",
+  logoAlt = "ServiceApp Logo",
+}: {
+  logoSrc?: string;
+  logoAlt?: string;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  
+  const navItems = [
+    { label: "Home", href: "/home" },
+    { label: "Products", href: "/products" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
+  ];
 
-
-
-
-export default function Home() {
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      {/* Gradient Background */}
-      
-      {/* Optional background image */}
-      {/*
-      <Image
-        src="/background.jpg" // place in /public
-        alt="Background"
-        fill
-        className="object-cover opacity-60"
-        priority
-      />
-      */}
+    <header className="sticky top-0 z-50 w-full border-b bg-indigo-700/90 backdrop-blur shadow-md">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left: Logo */}
+        <Link href="/home" className="flex items-center gap-2">
+          <Image
+            src={logoSrc}
+            alt={logoAlt}
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-xl object-contain"
+            priority
+          />
+          <span className="text-base font-semibold text-white hidden sm:inline">
+            ServiceApp
+          </span>
+        </Link>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col md:flex-row items-center justify-center h-full text-center md:text-left px-6 gap-10">
-        {/* Left Side - Text */}
-        <div className="max-w-2xl">
-          <h1 className="text-6xl font-extrabold text-white mb-6 drop-shadow-lg">
-            Welcome to <span className="text-pink-400">ServiceApp</span>
-          </h1>
-          <p className="text-xl text-gray-200 leading-relaxed mb-8">
-            Your one-stop solution for IT services, laptops, and more.  
-            <br />
-            Fast • Reliable • Affordable
-          </p>
+        {/* Center: Desktop Nav */}
+        <div className="hidden md:flex gap-6">
+          {navItems.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="text-sm font-medium text-white/80 hover:text-white transition"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
 
-          {/* Call to action */}
-          <div className="flex gap-6 justify-center md:justify-start">
-            <a
-              href="/services"
-              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:opacity-90 transition"
+        {/* Right: Desktop Auth */}
+        <div className="hidden md:flex gap-3">
+          <Link
+            href="/user/login"
+            className="rounded-xl border border-white/30 px-3 py-1.5 text-sm text-white shadow hover:bg-white/10 transition"
+          >
+            Login
+          </Link>
+          <Link
+            href="/user/register"
+            className="rounded-xl bg-pink-500 px-3.5 py-1.5 text-sm font-semibold text-white shadow hover:bg-pink-400 transition"
+          >
+            Register
+          </Link>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden text-white focus:outline-none"
+          onClick={() => setMenuOpen((prev) => !prev)}
+        >
+          {menuOpen ? (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              Explore Services
-            </a>
-            <a
-              href="/contact"
-              className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-gray-100 transition"
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              Book Now
-            </a>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          )}
+        </button>
+      </nav>
+
+      {/* Mobile Dropdown */}
+      {menuOpen && (
+        <div className="md:hidden bg-indigo-800/95 backdrop-blur px-6 py-4 space-y-4">
+          {/* Nav Items */}
+          {navItems.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="block text-sm font-medium text-white/90 hover:text-white transition"
+              onClick={() => setMenuOpen(false)}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <div className="border-t border-white/20 pt-4 flex flex-col gap-3">
+            <Link
+              href="/user/login"
+              className="rounded-xl border border-white/30 px-3 py-2 text-sm text-white text-center shadow hover:bg-white/10 transition"
+              onClick={() => setMenuOpen(false)}
+            >
+              Login
+            </Link>
+            <Link
+              href="/user/register"
+              className="rounded-xl bg-pink-500 px-3 py-2 text-sm font-semibold text-white text-center shadow hover:bg-pink-400 transition"
+              onClick={() => setMenuOpen(false)}
+            >
+              Register
+            </Link>
           </div>
         </div>
-
-        {/* Right Side - Image */}
-        <div className="w-full md:w-1/2 flex justify-center">
-          <Image src="/images/service.png" alt="ServiceApp showcase" width={500} height={400} />
-
-            
-        </div>
-      </div>
-    </div>
+      )}
+    </header>
   );
 }
