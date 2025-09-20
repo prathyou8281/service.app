@@ -38,7 +38,7 @@ export default function Home() {
           {/* Call to action */}
           <div className="flex gap-6 justify-center md:justify-start">
             <a
-              href="/services"
+              href="/explore"
               className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:opacity-90 transition"
             >
               Explore Services
