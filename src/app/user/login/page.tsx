@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -9,7 +9,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleLogin = (e) => {
+  // Fix: add type for event
+  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email || !password) {
       alert("Please enter both email and password!");
@@ -20,10 +21,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center     ">
+    <div className="h-screen w-full flex items-center justify-center">
       <div className="bg-white/20 backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-96">
         <h1 className="text-4xl font-extrabold text-center text-white mb-8">
-           Login
+          Login
         </h1>
 
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -42,7 +43,6 @@ export default function LoginPage() {
             className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
 
-          {/* Forgot Password Link */}
           <div className="text-right">
             <Link
               href="/user/forgetpassword"
