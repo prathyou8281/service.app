@@ -27,9 +27,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body >
+
         <TopNav />         {/* ✅ Navbar always on top */}
         <main className="min-h-[60vh]">{children}</main>
         <Footer brandName="Your Brand" /> {/* ✅ Footer always at bottom */}

@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4">
+    <div className="min-h-screen w-full flex items-center justify-center ">
       <div className="bg-white/20 backdrop-blur-lg p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-white mb-6">
           Forgot Password

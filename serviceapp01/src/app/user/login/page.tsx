@@ -20,7 +20,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-500    ">
+    <div className="h-screen w-full flex items-center justify-center     ">
       <div className="bg-white/20 backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-96">
         <h1 className="text-4xl font-extrabold text-center text-white mb-8">
            Login
@@ -63,7 +63,7 @@ export default function LoginPage() {
         <p className="text-center text-sm text-white mt-6">
           Don’t have an account?{" "}
           <Link
-            href="/register"
+            href="/user/register"
             className="text-yellow-300 hover:underline"
           >
             Register
