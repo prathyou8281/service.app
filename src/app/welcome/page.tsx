@@ -77,7 +77,7 @@ export default function Home() {
         {/* First row: Services + Vendors */}
         <div className="flex gap-4">
           <Link
-            href="/services"
+            href="/explore"
             className="w-[200px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
           >
             🛠 Services

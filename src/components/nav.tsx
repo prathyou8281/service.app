@@ -23,7 +23,7 @@ export default function Nav({
   const isWelcomePage = pathname === "/welcome";
 
   const navItems = [
-    { label: "Home", href: "/home" },
+    { label: "Home", href: "/" },
     { label: "Products", href: "/products" },
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
@@ -44,7 +44,7 @@ export default function Nav({
     <header className="sticky top-0 z-50 w-full border-b bg-blue-100 backdrop-blur dark:bg-blue-900/70">
       <nav className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/home" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <Image
             src={logoSrc}
             alt={logoAlt}
