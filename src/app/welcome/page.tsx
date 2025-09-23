@@ -93,7 +93,7 @@ export default function Home() {
 
           {/* Second row: Orders */}
           <Link
-            href="/orders"
+            href="\orders"
             className="w-full sm:w-[420px] h-[70px] sm:h-[80px] rounded-xl bg-indigo-600 text-base sm:text-lg lg:text-xl font-bold text-white shadow-lg hover:bg-indigo-500 transition flex items-center justify-center"
           >
             📦 My Orders

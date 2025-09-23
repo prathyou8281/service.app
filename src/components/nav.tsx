@@ -19,7 +19,9 @@ export default function Nav({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const hideAuthButtons = ["/user/login", "/user/register"].includes(pathname);
+  const hideAuthButtons =
+  ["/user/login", "/user/register", "/vendors", "/requests", "/orders"].includes(pathname);
+
   const isWelcomePage = pathname === "/welcome";
 
   const navItems = [
