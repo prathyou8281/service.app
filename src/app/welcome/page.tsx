@@ -10,7 +10,7 @@ export default function Home() {
     const email = localStorage.getItem("userEmail");
     if (email) {
       setUserEmail(email);
-      setUserName(email.split("@")[0]); // 👈 take name before "@"
+      setUserName(email.split("@")[0]); // take name before "@"
     }
   }, []);
 
@@ -19,20 +19,21 @@ export default function Home() {
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/20" />
 
-      {/* Split Layout */}
-      <div className="relative z-30 flex h-full items-center justify-between px-10">
+      {/* Responsive Layout */}
+      <div className="relative z-30 flex flex-col lg:flex-row items-start lg:items-center justify-between px-6 lg:px-12 py-12 gap-10">
+        
         {/* Left Side: Greeting + Stats + Activity */}
-        <div className="max-w-2xl text-left space-y-10 pt-20">
+        <div className="flex-1 max-w-2xl text-left space-y-10">
           {/* Greeting */}
           <div>
-            <h1 className="mb-10 text-4xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-lg">
+            <h1 className="mb-6 text-3xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-lg">
               Welcome back,{" "}
               <span className="bg-gradient-to-r from-pink-400 to-indigo-400 bg-clip-text text-transparent">
                 {userName}
               </span>{" "}
               👋
             </h1>
-            <p className="text-lg leading-relaxed text-gray-200 sm:text-xl">
+            <p className="text-base sm:text-lg leading-relaxed text-gray-200 sm:text-xl">
               Your one-stop solution for{" "}
               <span className="font-semibold text-pink-300">IT services</span>,{" "}
               <span className="font-semibold text-indigo-300">laptops</span> & more.
@@ -46,15 +47,15 @@ export default function Home() {
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg text-center">
-              <p className="text-3xl font-bold text-white">12</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white">12</p>
               <p className="text-sm text-gray-300">Total Orders</p>
             </div>
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg text-center">
-              <p className="text-3xl font-bold text-white">3</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white">3</p>
               <p className="text-sm text-gray-300">Active Services</p>
             </div>
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg text-center">
-              <p className="text-3xl font-bold text-white">1</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white">1</p>
               <p className="text-sm text-gray-300">Pending Payments</p>
             </div>
           </div>
@@ -72,40 +73,40 @@ export default function Home() {
           </div>
         </div>
 
-              {/* Right Side: Buttons */}
-      <div className="absolute right-1/6 top-1/2 -translate-y-1/7 flex flex-col gap-6 items-center">
-        {/* First row: Services + Vendors */}
-        <div className="flex gap-4">
+        {/* Right Side: Buttons (Responsive) */}
+        <div className="flex-1 flex flex-col gap-6 items-center lg:items-end">
+          {/* First row: Services + Vendors */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            <Link
+              href="/explore"
+              className="flex-1 sm:flex-none w-full sm:w-[200px] h-[80px] rounded-2xl bg-indigo-600 text-lg sm:text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
+            >
+              🛠 Services
+            </Link>
+            <Link
+              href="/vendors"
+              className="flex-1 sm:flex-none w-full sm:w-[200px] h-[80px] rounded-2xl bg-indigo-600 text-lg sm:text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
+            >
+              🏬 Vendors
+            </Link>
+          </div>
+
+          {/* Second row: Orders */}
           <Link
-            href="/explore"
-            className="w-[200px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
+            href="/orders"
+            className="w-full sm:w-[420px] h-[80px] rounded-2xl bg-indigo-600 text-lg sm:text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
           >
-            🛠 Services
+            📦 My Orders
           </Link>
+
+          {/* Third row: Support */}
           <Link
-            href="/vendors"
-            className="w-[200px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
+            href="/support"
+            className="w-full sm:w-[420px] h-[80px] rounded-2xl bg-indigo-600 text-lg sm:text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
           >
-            🏬 Vendors
+            💬 Support
           </Link>
         </div>
-
-        {/* Second row: Orders */}
-        <Link
-          href="/orders"
-          className="w-[420px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-        >
-          📦 My Orders
-        </Link>
-
-        {/* Third row: Support */}
-        <Link
-          href="/support"
-          className="w-[420px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-        >
-          💬 Support
-        </Link>
-      </div>
       </div>
     </div>
   );
