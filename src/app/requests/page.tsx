@@ -23,7 +23,7 @@ export default function RequestPage() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-yellow/90 backdrop-blur-md p-10 rounded-2xl shadow-2xl max-w-lg w-full"
+        className="bg-green/90 backdrop-blur-md p-10 rounded-2xl shadow-2xl max-w-lg w-full"
       >
         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 mb-6 text-center">
           📑 Request Form
