@@ -7,11 +7,12 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Fix: type the event
-  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!name || !email || !password || !confirmPassword) {
       alert("Please fill all fields!");
       return;
@@ -20,7 +21,29 @@ export default function RegisterPage() {
       alert("Passwords do not match!");
       return;
     }
-    router.push("/welcome");
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (res.ok) {
+        alert("✅ Account created! Please login.");
+        router.push("/user/login");
+      } else {
+        const data = await res.json();
+        alert(data.error || "❌ Registration failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,9 +83,10 @@ export default function RegisterPage() {
           />
           <button
             type="submit"
-            className="mt-4 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl shadow-lg transition"
+            disabled={loading}
+            className="mt-4 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl shadow-lg transition disabled:opacity-50"
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
         <p className="text-center text-sm text-white mt-6">

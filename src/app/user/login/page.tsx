@@ -3,21 +3,21 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react"; // 👈 import NextAuth signIn
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  // Fix: add type for event
   const handleLogin = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email || !password) {
       alert("Please enter both email and password!");
       return;
     }
-    // Here you can later add authentication logic
-    router.push("/welcome"); // Redirect after login
+    // Here you can later add database authentication logic
+    router.push("/welcome");
   };
 
   return (
@@ -27,6 +27,7 @@ export default function LoginPage() {
           Login
         </h1>
 
+        {/* Email/Password Login */}
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <input
             type="email"
@@ -59,6 +60,29 @@ export default function LoginPage() {
             Login
           </button>
         </form>
+
+        {/* Divider */}
+        <div className="flex items-center my-6">
+          <div className="flex-grow border-t border-gray-300"></div>
+          <span className="mx-4 text-white text-sm">OR</span>
+          <div className="flex-grow border-t border-gray-300"></div>
+        </div>
+
+        {/* Google Login Button */}
+
+        
+        <button
+          onClick={() => signIn("google", { callbackUrl: "/welcome" })}
+          className="w-full bg-white text-black font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
+        >
+          <img
+            src="https://developers.google.com/identity/images/g-logo.png"
+            alt="Google"
+            className="w-5 h-5"
+          />
+          Login with Google
+        </button>
+
 
         <p className="text-center text-sm text-white mt-6">
           Don’t have an account?{" "}
