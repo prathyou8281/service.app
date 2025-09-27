@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { name, email, password } = await req.json();
 
@@ -18,10 +19,11 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error("❌ Register error:", err); // 👈 This shows the real issue in terminal
+  } catch (err) {
+    const error = err as Error; // 👈 no more `any`
+    console.error("❌ Register error:", error.message);
     return NextResponse.json(
-      { error: err.message || "Server error" },
+      { error: error.message || "Server error" },
       { status: 500 }
     );
   }
