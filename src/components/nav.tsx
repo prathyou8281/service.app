@@ -50,8 +50,8 @@ export default function Nav({
           <Image
             src={logoSrc}
             alt={logoAlt}
-            width={36}
-            height={36}
+            width={60}
+            height={60}
             className="h-9 w-9 rounded-xl object-contain"
             priority
           />
@@ -98,8 +98,8 @@ export default function Nav({
                   <Image
                     src="/images/avatar.png"
                     alt="User Avatar"
-                    width={32}
-                    height={32}
+                    width={60}
+                    height={60}
                     className="rounded-full border-2 border-indigo-500"
                   />
                   <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white"></span>

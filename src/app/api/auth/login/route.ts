@@ -1,39 +1,47 @@
-// app/api/auth/login/route.ts
 import { NextResponse } from "next/server";
+import mysql from "mysql2/promise";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-  // Expect JSON: { email, password }
-  const { email, password } = await req.json().catch(() => ({}));
+  try {
+    const { email, password } = await req.json();
 
-  if (!email || !password) {
-    return NextResponse.json({ ok: false, message: "Email and password required" }, { status: 400 });
+    const db = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+    });
+
+    const [rows]: any = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
+
+    if (rows.length === 0) {
+      return NextResponse.json(
+        { success: false, message: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
+
+    const user = rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return NextResponse.json(
+        { success: false, message: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Login successful",
+      user: { id: user.id, username: user.username, email: user.email },
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
-
-  // TODO: Replace with your real auth check against DB
-  // For now, accept any non-empty email/password
-  const res = NextResponse.json({ ok: true });
-
-  // Mark session as logged-in
-  res.cookies.set({
-    name: "auth",
-    value: "true",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24, // 1 day
-  });
-
-  // Optional: store email (also HTTP-only)
-  res.cookies.set({
-    name: "userEmail",
-    value: encodeURIComponent(email),
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24,
-  });
-
-  return res;
 }

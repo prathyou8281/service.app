@@ -3,25 +3,45 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react"; // 👈 import NextAuth signIn
+import { signIn } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!email || !password) {
-      alert("Please enter both email and password!");
+      setError("⚠️ Please enter both email and password!");
       return;
     }
-    // Here you can later add database authentication logic
-    router.push("/welcome");
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        setError("❌ Invalid email or password");
+        return;
+      }
+
+      router.push("/welcome");
+    } catch (err) {
+      setError("⚠️ Server error, please try again later.");
+    }
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center">
+    <div className="h-screen w-full flex items-center justify-center relative">
       <div className="bg-white/20 backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-96">
         <h1 className="text-4xl font-extrabold text-center text-white mb-8">
           Login
@@ -69,8 +89,6 @@ export default function LoginPage() {
         </div>
 
         {/* Google Login Button */}
-
-        
         <button
           onClick={() => signIn("google", { callbackUrl: "/welcome" })}
           className="w-full bg-white text-black font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
@@ -83,7 +101,6 @@ export default function LoginPage() {
           Login with Google
         </button>
 
-
         <p className="text-center text-sm text-white mt-6">
           Don’t have an account?{" "}
           <Link
@@ -94,6 +111,21 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+
+      {/* Animated Error Popup */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="absolute top-10 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg font-semibold"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
