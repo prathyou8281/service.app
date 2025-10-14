@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import {
   User,
   Mail,
@@ -13,16 +13,26 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+// ✅ Define the shape of user data
+interface UserData {
+  username: string;
+  email: string;
+  phone: string;
+  address: string;
+  role: string;
+  joined: string;
+}
+
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
-  const [editingField, setEditingField] = useState<string | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [editingField, setEditingField] = useState<keyof UserData | null>(null);
   const [tempValue, setTempValue] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("userData");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      setUser(JSON.parse(storedUser) as UserData);
     } else {
       // default data if no user stored
       setUser({
@@ -38,17 +48,22 @@ export default function ProfilePage() {
 
   const initials = user?.username ? user.username[0].toUpperCase() : "G";
 
-  const startEditing = (key: string) => {
+  const startEditing = (key: keyof UserData) => {
+    if (!user) return;
     setEditingField(key);
     setTempValue(user[key]);
   };
 
-  const saveField = (key: string) => {
+  const saveField = (key: keyof UserData) => {
+    if (!user) return;
     const updated = { ...user, [key]: tempValue };
     setUser(updated);
     localStorage.setItem("userData", JSON.stringify(updated));
     setEditingField(null);
   };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setTempValue(e.target.value);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 text-white">
@@ -68,7 +83,9 @@ export default function ProfilePage() {
 
         <div className="flex gap-4 mt-6">
           <button
-            onClick={() => alert("Edit fields directly by clicking on them.")}
+            onClick={() =>
+              alert("Edit fields directly by clicking on them.")
+            }
             className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-5 py-2 rounded-lg shadow transition-all"
           >
             <Edit className="h-4 w-4" /> Edit Profile
@@ -100,9 +117,9 @@ export default function ProfilePage() {
             { icon: <MapPin className="h-5 w-5 text-yellow-400" />, label: "Address", key: "address" },
             { icon: <Shield className="h-5 w-5 text-indigo-400" />, label: "Role", key: "role" },
             { icon: <Calendar className="h-5 w-5 text-purple-400" />, label: "Joined", key: "joined" },
-          ].map((item, i) => (
+          ].map((item) => (
             <div
-              key={i}
+              key={item.key}
               className="flex items-center gap-3 group hover:bg-white/5 rounded-lg px-3 py-2 transition-all"
             >
               {item.icon}
@@ -111,7 +128,7 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     value={tempValue}
-                    onChange={(e) => setTempValue(e.target.value)}
+                    onChange={handleInputChange}
                     className="bg-white/10 text-white border border-white/20 rounded px-2 py-1 flex-1 outline-none focus:border-white/50"
                     autoFocus
                   />
