@@ -1,10 +1,22 @@
 import { NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import mysql, { RowDataPacket } from "mysql2/promise";
 import bcrypt from "bcryptjs";
+
+interface LoginBody {
+  email: string;
+  password: string;
+}
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email, password } = (await req.json()) as LoginBody;
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { success: false, message: "Email and password are required" },
+        { status: 400 }
+      );
+    }
 
     const db = await mysql.createConnection({
       host: process.env.DB_HOST,
@@ -14,7 +26,11 @@ export async function POST(req: Request) {
       database: process.env.DB_NAME,
     });
 
-    const [rows]: any = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
+    // ✅ No more `any`
+    const [rows] = await db.execute<RowDataPacket[]>(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
 
     if (rows.length === 0) {
       return NextResponse.json(
@@ -24,21 +40,36 @@ export async function POST(req: Request) {
     }
 
     const user = rows[0];
-    const isMatch = await bcrypt.compare(password, user.password);
+    const validPassword = await bcrypt.compare(password, user.password as string);
 
-    if (!isMatch) {
+    if (!validPassword) {
       return NextResponse.json(
         { success: false, message: "Invalid email or password" },
         { status: 401 }
       );
     }
 
+    // ✅ Return minimal user info
     return NextResponse.json({
       success: true,
       message: "Login successful",
-      user: { id: user.id, username: user.username, email: user.email },
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        role: user.role || "Member",
+      },
     });
-  } catch (err) {
+  } catch (error: unknown) {
+    // ✅ Proper error handling
+    if (error instanceof Error) {
+      console.error("Login Error:", error.message);
+    } else {
+      console.error("Unknown login error:", error);
+    }
+
     return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }

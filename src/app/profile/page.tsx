@@ -34,7 +34,7 @@ export default function ProfilePage() {
     if (storedUser) {
       setUser(JSON.parse(storedUser) as UserData);
     } else {
-      // default data if no user stored
+      // Default user data if none is stored
       setUser({
         username: "Guest User",
         email: "guest@example.com",
@@ -83,9 +83,7 @@ export default function ProfilePage() {
 
         <div className="flex gap-4 mt-6">
           <button
-            onClick={() =>
-              alert("Edit fields directly by clicking on them.")
-            }
+            onClick={() => alert("Edit fields directly by clicking on them.")}
             className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-5 py-2 rounded-lg shadow transition-all"
           >
             <Edit className="h-4 w-4" /> Edit Profile
@@ -110,14 +108,16 @@ export default function ProfilePage() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-200 text-base">
-          {[
-            { icon: <User className="h-5 w-5 text-pink-400" />, label: "Full Name", key: "username" },
-            { icon: <Mail className="h-5 w-5 text-blue-400" />, label: "Email", key: "email" },
-            { icon: <Phone className="h-5 w-5 text-green-400" />, label: "Phone", key: "phone" },
-            { icon: <MapPin className="h-5 w-5 text-yellow-400" />, label: "Address", key: "address" },
-            { icon: <Shield className="h-5 w-5 text-indigo-400" />, label: "Role", key: "role" },
-            { icon: <Calendar className="h-5 w-5 text-purple-400" />, label: "Joined", key: "joined" },
-          ].map((item) => (
+          {(
+            [
+              { icon: <User className="h-5 w-5 text-pink-400" />, label: "Full Name", key: "username" as const },
+              { icon: <Mail className="h-5 w-5 text-blue-400" />, label: "Email", key: "email" as const },
+              { icon: <Phone className="h-5 w-5 text-green-400" />, label: "Phone", key: "phone" as const },
+              { icon: <MapPin className="h-5 w-5 text-yellow-400" />, label: "Address", key: "address" as const },
+              { icon: <Shield className="h-5 w-5 text-indigo-400" />, label: "Role", key: "role" as const },
+              { icon: <Calendar className="h-5 w-5 text-purple-400" />, label: "Joined", key: "joined" as const },
+            ] as const
+          ).map((item) => (
             <div
               key={item.key}
               className="flex items-center gap-3 group hover:bg-white/5 rounded-lg px-3 py-2 transition-all"
