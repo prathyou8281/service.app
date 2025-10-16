@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import mysql, { RowDataPacket } from "mysql2/promise";
 import bcrypt from "bcryptjs";
 
-export async function POST(req: Request) {
-  let db;
-  try {
-    const { username, email, password, role } = await req.json();
+interface RegisterBody {
+  username: string;
+  email: string;
+  password: string;
+  role: string;
+}
 
+interface UserRow extends RowDataPacket {
+  id: number;
+  username: string;
+  email: string;
+}
+
+export async function POST(req: Request) {
+  let db: mysql.Connection | null = null;
+
+  try {
+    const { username, email, password, role } = (await req.json()) as RegisterBody;
+
+    // ✅ Validate input
     if (!username || !email || !password || !role) {
       return NextResponse.json(
         { success: false, message: "All fields and role are required." },
@@ -14,8 +29,10 @@ export async function POST(req: Request) {
       );
     }
 
+    // ✅ Hash password securely
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // ✅ Connect to MySQL
     db = await mysql.createConnection({
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),
@@ -24,20 +41,20 @@ export async function POST(req: Request) {
       database: process.env.DB_NAME,
     });
 
-    // ✅ Check if user already exists
-    const [existing] = await db.execute(
-      "SELECT * FROM users WHERE email = ? OR username = ?",
+    // ✅ Check for existing user
+    const [existing] = await db.execute<UserRow[]>(
+      "SELECT id FROM users WHERE email = ? OR username = ? LIMIT 1",
       [email, username]
     );
 
-    if ((existing as any[]).length > 0) {
+    if (existing.length > 0) {
       return NextResponse.json(
         { success: false, message: "User already exists." },
-        { status: 400 }
+        { status: 409 }
       );
     }
 
-    // ✅ Insert new user with selected role
+    // ✅ Insert user with selected role
     await db.execute(
       "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
       [username, email, hashedPassword, role]
@@ -45,12 +62,17 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Registration successful",
+      message: "Registration successful.",
     });
-  } catch (error: any) {
-    console.error("🚨 Registration Error:", error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("🚨 Registration Error:", error.message);
+    } else {
+      console.error("🚨 Unknown Registration Error:", error);
+    }
+
     return NextResponse.json(
-      { success: false, message: "Server error" },
+      { success: false, message: "Server error." },
       { status: 500 }
     );
   } finally {
