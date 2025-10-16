@@ -13,8 +13,8 @@ const authOptions: NextAuthOptions = {
     signIn: "/user/login", // custom login page
   },
   callbacks: {
-    // ✅ No ESLint warnings (unused vars prefixed with _)
-    async redirect({ _url, _baseUrl }: { _url: string; _baseUrl: string }) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       return "/welcome"; // redirect after Google login
     },
   },
