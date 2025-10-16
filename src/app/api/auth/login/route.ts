@@ -7,8 +7,17 @@ interface LoginBody {
   password: string;
 }
 
+interface UserRow extends RowDataPacket {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  role: string;
+}
+
 export async function POST(req: Request) {
-  let db;
+  let db: mysql.Connection | null = null;
+
   try {
     const { email, password } = (await req.json()) as LoginBody;
 
@@ -29,12 +38,12 @@ export async function POST(req: Request) {
     });
 
     // ✅ Check for user by email or username
-    const [rows] = await db.execute<RowDataPacket[]>(
+    const [rows] = await db.execute<UserRow[]>(
       "SELECT * FROM users WHERE email = ? OR username = ? LIMIT 1",
       [email, email]
     );
 
-    if (!rows.length) {
+    if (rows.length === 0) {
       return NextResponse.json(
         { success: false, message: "Invalid email or password" },
         { status: 401 }
@@ -42,7 +51,8 @@ export async function POST(req: Request) {
     }
 
     const user = rows[0];
-    const validPassword = await bcrypt.compare(password, user.password as string);
+    const validPassword = await bcrypt.compare(password, user.password);
+
     if (!validPassword) {
       return NextResponse.json(
         { success: false, message: "Invalid email or password" },
@@ -52,12 +62,24 @@ export async function POST(req: Request) {
 
     console.log(`✅ Login success for ${user.username} (${user.role})`);
 
-    // ✅ Determine redirect path based on role
+    // ✅ Role-based redirect logic
     let redirect = "/welcome";
-    if (user.role === "Admin") redirect = "/admin/dashboard";
-    else if (user.role === "Vendor") redirect = "/vendor/dashboard";
-    else if (user.role === "Technician") redirect = "/technician/dashboard";
+    switch (user.role?.toLowerCase()) {
+      case "admin":
+        redirect = "/admin/dashboard";
+        break;
+      case "vendor":
+        redirect = "/vendor/dashboard";
+        break;
+      case "technician":
+        redirect = "/technician/dashboard";
+        break;
+      default:
+        redirect = "/welcome";
+        break;
+    }
 
+    // ✅ Return response
     return NextResponse.json({
       success: true,
       message: "Login successful",
@@ -69,8 +91,13 @@ export async function POST(req: Request) {
       },
       redirect,
     });
-  } catch (error: any) {
-    console.error("🚨 Login error:", error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("🚨 Login error:", error.message);
+    } else {
+      console.error("🚨 Login error: Unknown error", error);
+    }
+
     return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }

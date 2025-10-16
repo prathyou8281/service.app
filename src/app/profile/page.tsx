@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState, ChangeEvent } from "react";
 import {
   User,
@@ -13,7 +14,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// ✅ Define the shape of user data
+// ✅ Define user data structure
 interface UserData {
   id: number;
   username: string;
@@ -27,10 +28,10 @@ interface UserData {
 export default function ProfilePage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [editingField, setEditingField] = useState<keyof UserData | null>(null);
-  const [tempValue, setTempValue] = useState("");
+  const [tempValue, setTempValue] = useState<string>("");
   const router = useRouter();
 
-  // ✅ Load from DB via API if logged in
+  // ✅ Fetch user from DB if logged in
   useEffect(() => {
     const stored = localStorage.getItem("userData");
     if (!stored) {
@@ -48,20 +49,22 @@ export default function ProfilePage() {
           console.error("Failed to fetch user data");
         }
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Profile fetch error:", err));
   }, [router]);
 
   const initials = user?.username ? user.username[0].toUpperCase() : "G";
 
+  // ✅ Begin editing a field
   const startEditing = (key: keyof UserData) => {
     if (!user) return;
     setEditingField(key);
-    setTempValue(user[key]);
+    setTempValue(String(user[key] ?? "")); // ✅ fixed TypeScript type issue
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) =>
     setTempValue(e.target.value);
 
+  // ✅ Save field changes
   const saveField = async (key: keyof UserData) => {
     if (!user) return;
 
@@ -69,21 +72,21 @@ export default function ProfilePage() {
     setUser(updated);
     setEditingField(null);
 
-    // ✅ Update DB and localStorage
     try {
       const res = await fetch("/api/auth/update-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: user.id, [key]: tempValue }),
       });
+
       const data = await res.json();
       if (data.success) {
         localStorage.setItem("userData", JSON.stringify(updated));
       } else {
-        alert("Failed to update profile field.");
+        alert("❌ Failed to update profile field.");
       }
     } catch (err) {
-      console.error("Profile update error:", err);
+      console.error("🚨 Profile update error:", err);
     }
   };
 
@@ -101,7 +104,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 text-white">
-      {/* Header */}
+      {/* 🔹 Header Section */}
       <div className="relative bg-black/30 backdrop-blur-md p-10 flex flex-col items-center border-b border-white/10 shadow-xl">
         <div className="relative w-32 h-32">
           <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 animate-spin-slow blur-md opacity-70"></div>
@@ -117,7 +120,9 @@ export default function ProfilePage() {
 
         <div className="flex gap-4 mt-6">
           <button
-            onClick={() => alert("Click on any field to edit it directly.")}
+            onClick={() =>
+              alert("💡 Click any editable field below to change it.")
+            }
             className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-5 py-2 rounded-lg shadow transition-all"
           >
             <Edit className="h-4 w-4" /> Edit Profile
@@ -132,7 +137,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Profile Info */}
+      {/* 🔹 Profile Info Section */}
       <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-10 mx-6 sm:mx-16 mt-10 shadow-xl">
         <h2 className="text-2xl font-semibold mb-8 border-b border-white/20 pb-2">
           Profile Information
@@ -173,7 +178,7 @@ export default function ProfilePage() {
               ) : (
                 <div
                   onClick={() =>
-                    item.key !== "email" && item.key !== "role" && item.key !== "joined"
+                    !["email", "role", "joined"].includes(item.key)
                       ? startEditing(item.key)
                       : undefined
                   }
@@ -197,7 +202,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* 🔹 Footer */}
       <footer className="text-center text-sm text-gray-300 mt-16 pb-8">
         © {new Date().getFullYear()} ServiceApp | Designed with ❤️ in Kannur
       </footer>
