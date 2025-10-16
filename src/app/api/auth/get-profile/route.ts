@@ -1,20 +1,29 @@
 import { NextResponse } from "next/server";
-import mysql from "mysql2/promise";
-import bcrypt from "bcryptjs";
+import mysql, { RowDataPacket } from "mysql2/promise";
 
-export async function POST(req: Request) {
-  let db;
+interface UserRow extends RowDataPacket {
+  id: number;
+  username: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  role?: string;
+  created_at?: string;
+}
+
+export async function GET(req: Request) {
+  let db: mysql.Connection | null = null;
+
   try {
-    const { username, email, password, role } = await req.json();
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
 
-    if (!username || !email || !password || !role) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, message: "All fields and role are required." },
+        { success: false, message: "Missing user ID" },
         { status: 400 }
       );
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     db = await mysql.createConnection({
       host: process.env.DB_HOST,
@@ -24,31 +33,40 @@ export async function POST(req: Request) {
       database: process.env.DB_NAME,
     });
 
-    // ✅ Check if user already exists
-    const [existing] = await db.execute(
-      "SELECT * FROM users WHERE email = ? OR username = ?",
-      [email, username]
+    const [rows] = await db.execute<UserRow[]>(
+      "SELECT * FROM users WHERE id = ? LIMIT 1",
+      [id]
     );
 
-    if ((existing as any[]).length > 0) {
+    if (rows.length === 0) {
       return NextResponse.json(
-        { success: false, message: "User already exists." },
-        { status: 400 }
+        { success: false, message: "User not found" },
+        { status: 404 }
       );
     }
 
-    // ✅ Insert new user with selected role
-    await db.execute(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [username, email, hashedPassword, role]
-    );
+    const user = rows[0];
 
     return NextResponse.json({
       success: true,
-      message: "Registration successful",
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone ?? "",
+        address: user.address ?? "",
+        role: user.role ?? "Member",
+        joined: user.created_at
+          ? new Date(user.created_at).toLocaleDateString()
+          : "N/A",
+      },
     });
-  } catch (error: any) {
-    console.error("🚨 Registration Error:", error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("🚨 Get Profile Error:", error.message);
+    } else {
+      console.error("🚨 Unknown Error in Get Profile:", error);
+    }
     return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }
