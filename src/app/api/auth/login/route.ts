@@ -8,6 +8,7 @@ interface LoginBody {
 }
 
 export async function POST(req: Request) {
+  let db;
   try {
     const { email, password } = (await req.json()) as LoginBody;
 
@@ -18,7 +19,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const db = await mysql.createConnection({
+    // ✅ Connect to MySQL
+    db = await mysql.createConnection({
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),
       user: process.env.DB_USER,
@@ -26,13 +28,13 @@ export async function POST(req: Request) {
       database: process.env.DB_NAME,
     });
 
-    // ✅ No more `any`
+    // ✅ Check for user by email or username
     const [rows] = await db.execute<RowDataPacket[]>(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
+      "SELECT * FROM users WHERE email = ? OR username = ? LIMIT 1",
+      [email, email]
     );
 
-    if (rows.length === 0) {
+    if (!rows.length) {
       return NextResponse.json(
         { success: false, message: "Invalid email or password" },
         { status: 401 }
@@ -41,7 +43,6 @@ export async function POST(req: Request) {
 
     const user = rows[0];
     const validPassword = await bcrypt.compare(password, user.password as string);
-
     if (!validPassword) {
       return NextResponse.json(
         { success: false, message: "Invalid email or password" },
@@ -49,7 +50,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Return minimal user info
+    console.log(`✅ Login success for ${user.username} (${user.role})`);
+
+    // ✅ Determine redirect path based on role
+    let redirect = "/welcome";
+    if (user.role === "Admin") redirect = "/admin/dashboard";
+    else if (user.role === "Vendor") redirect = "/vendor/dashboard";
+    else if (user.role === "Technician") redirect = "/technician/dashboard";
+
     return NextResponse.json({
       success: true,
       message: "Login successful",
@@ -57,22 +65,17 @@ export async function POST(req: Request) {
         id: user.id,
         username: user.username,
         email: user.email,
-        phone: user.phone,
-        address: user.address,
-        role: user.role || "Member",
+        role: user.role,
       },
+      redirect,
     });
-  } catch (error: unknown) {
-    // ✅ Proper error handling
-    if (error instanceof Error) {
-      console.error("Login Error:", error.message);
-    } else {
-      console.error("Unknown login error:", error);
-    }
-
+  } catch (error: any) {
+    console.error("🚨 Login error:", error.message);
     return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }
     );
+  } finally {
+    if (db) await db.end();
   }
 }

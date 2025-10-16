@@ -1,30 +1,22 @@
 import { NextResponse } from "next/server";
-import mysql, { RowDataPacket } from "mysql2/promise";
+import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
 
-// ✅ Define expected input structure
-interface RegisterBody {
-  username: string;
-  email: string;
-  password: string;
-  phone?: string;
-  address?: string;
-}
-
 export async function POST(req: Request) {
+  let db;
   try {
-    const { username, email, password, phone, address } = (await req.json()) as RegisterBody;
+    const { username, email, password, role } = await req.json();
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !role) {
       return NextResponse.json(
-        { success: false, message: "All required fields must be filled" },
+        { success: false, message: "All fields and role are required." },
         { status: 400 }
       );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const db = await mysql.createConnection({
+    db = await mysql.createConnection({
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),
       user: process.env.DB_USER,
@@ -32,39 +24,36 @@ export async function POST(req: Request) {
       database: process.env.DB_NAME,
     });
 
-    // ✅ Properly type the result
-    const [existing] = await db.execute<RowDataPacket[]>(
-      "SELECT id FROM users WHERE email = ?",
-      [email]
+    // ✅ Check if user already exists
+    const [existing] = await db.execute(
+      "SELECT * FROM users WHERE email = ? OR username = ?",
+      [email, username]
     );
 
-    if (existing.length > 0) {
+    if ((existing as any[]).length > 0) {
       return NextResponse.json(
-        { success: false, message: "Email already registered" },
+        { success: false, message: "User already exists." },
         { status: 400 }
       );
     }
 
+    // ✅ Insert new user with selected role
     await db.execute(
-      "INSERT INTO users (username, email, password, phone, address) VALUES (?, ?, ?, ?, ?)",
-      [username, email, hashedPassword, phone || null, address || null]
+      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
+      [username, email, hashedPassword, role]
     );
 
     return NextResponse.json({
       success: true,
       message: "Registration successful",
     });
-  } catch (error: unknown) {
-    // ✅ Safely handle errors
-    if (error instanceof Error) {
-      console.error("Register Error:", error.message);
-    } else {
-      console.error("Unknown register error:", error);
-    }
-
+  } catch (error: any) {
+    console.error("🚨 Registration Error:", error.message);
     return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }
     );
+  } finally {
+    if (db) await db.end();
   }
 }

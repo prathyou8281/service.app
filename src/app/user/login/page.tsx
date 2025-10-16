@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
@@ -11,6 +11,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+
+  // ✅ If already logged in, redirect
+  useEffect(() => {
+    const storedUser = localStorage.getItem("userData");
+    if (storedUser) router.push("/welcome");
+  }, [router]);
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,29 +35,33 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (!data.success) {
-        setError("❌ Invalid email or password");
+      if (!res.ok || !data.success) {
+        setError(data.message || "❌ Invalid email or password");
         return;
       }
 
-      router.push("/welcome");
+      // ✅ Save user info
+      localStorage.setItem("userData", JSON.stringify(data.user));
+
+      // ✅ Redirect based on role (from backend)
+      router.push(data.redirect);
     } catch (err) {
+      console.error("Login error:", err);
       setError("⚠️ Server error, please try again later.");
     }
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center relative">
-      <div className="bg-white/20 backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-96">
+    <div className="h-screen w-full flex items-center justify-center relative bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600">
+      <div className="bg-white/20 backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-96 border border-white/30">
         <h1 className="text-4xl font-extrabold text-center text-white mb-8">
           Login
         </h1>
 
-        {/* Email/Password Login */}
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <input
-            type="email"
-            placeholder="Email"
+            type="text"
+            placeholder="Email or Username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
@@ -81,14 +91,12 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="flex items-center my-6">
           <div className="flex-grow border-t border-gray-300"></div>
           <span className="mx-4 text-white text-sm">OR</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        {/* Google Login Button */}
         <button
           onClick={() => signIn("google", { callbackUrl: "/welcome" })}
           className="w-full bg-white text-black font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"

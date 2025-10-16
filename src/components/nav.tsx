@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { User, Settings, LogOut, Menu, X } from "lucide-react";
 
 export default function Nav({
@@ -17,12 +17,30 @@ export default function Nav({
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<{ username: string; email: string; role: string } | null>(null);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const hideAuthButtons =
-  ["/user/login", "/user/register", "/vendors", "/requests", "/orders"].includes(pathname);
+  // ✅ Pages where login/register buttons should be hidden
+  const hideAuthButtons = [
+    "/user/login",
+    "/user/register",
+    "/vendors",
+    "/requests",
+    "/orders",
+    "/welcome",
+    "/profile",
+    "/admin/dashboard",
+    "/vendor/dashboard",
+    "/technician/dashboard",
+  ].includes(pathname);
 
-  const isWelcomePage = pathname === "/welcome";
+  // ✅ Pages that should display the profile icon (top-right avatar)
+  const isProtectedPage = [
+    "/welcome",
+    "/admin/dashboard",
+    "/vendor/dashboard",
+    "/technician/dashboard",
+  ].includes(pathname);
 
   const navItems = [
     { label: "Home", href: "/" },
@@ -30,6 +48,18 @@ export default function Nav({
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
   ];
+
+  // ✅ Load user info from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("userData");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
 
   const handleMouseEnter = () => {
     if (closeTimeout.current) clearTimeout(closeTimeout.current);
@@ -42,10 +72,16 @@ export default function Nav({
     }, 500);
   };
 
+  // ✅ Logout user
+  const handleLogout = () => {
+    localStorage.removeItem("userData");
+    router.push("/user/login");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-blue-100 backdrop-blur dark:bg-blue-900/70">
       <nav className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
+        {/* ✅ Logo */}
         <Link href="/" className="flex items-center gap-3">
           <Image
             src={logoSrc}
@@ -57,24 +93,25 @@ export default function Nav({
           />
         </Link>
 
-        {/* Desktop nav items */}
+        {/* ✅ Desktop nav items */}
         <div className="mx-auto hidden md:flex gap-6">
           {navItems.map((item) => (
-            <Link key={item.label} href={item.href} className="text-sm font-medium">
+            <Link
+              key={item.label}
+              href={item.href}
+              className="text-sm font-medium hover:text-indigo-600 transition-colors"
+            >
               {item.label}
             </Link>
           ))}
         </div>
 
-        {/* Right side */}
+        {/* ✅ Right side */}
         <div className="ml-auto flex items-center gap-3 relative">
           {/* Desktop auth buttons */}
-          {!hideAuthButtons && !isWelcomePage && (
+          {!hideAuthButtons && (
             <div className="hidden md:flex gap-3">
-              <Link
-                href="/user/login"
-                className="rounded-xl border px-3 py-1.5 text-sm"
-              >
+              <Link href="/user/login" className="rounded-xl border px-3 py-1.5 text-sm">
                 Login
               </Link>
               <Link
@@ -86,8 +123,8 @@ export default function Nav({
             </div>
           )}
 
-          {/* Desktop profile */}
-          {isWelcomePage && (
+          {/* ✅ Profile avatar shown on welcome/dashboard pages */}
+          {isProtectedPage && (
             <div
               className="hidden md:block relative"
               onMouseEnter={handleMouseEnter}
@@ -106,10 +143,10 @@ export default function Nav({
                 </div>
                 <div className="hidden sm:flex flex-col items-start">
                   <span className="text-sm font-semibold text-gray-800 dark:text-white">
-                    John Doe
+                    {user?.username || "Guest"}
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    Member
+                    {user?.role || "Member"}
                   </span>
                 </div>
                 <svg
@@ -118,15 +155,11 @@ export default function Nav({
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
+              {/* ✅ Dropdown Menu */}
               <div
                 className={`absolute right-0 mt-2 w-52 rounded-xl bg-white shadow-xl ring-1 ring-black/10 dark:bg-gray-800 dark:text-white transform transition-all duration-300 origin-top ${
                   profileOpen
@@ -135,11 +168,12 @@ export default function Nav({
                 }`}
               >
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                  <p className="text-sm font-semibold">John Doe</p>
+                  <p className="text-sm font-semibold">{user?.username || "Guest"}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    johndoe@email.com
+                    {user?.email || "guest@example.com"}
                   </p>
                 </div>
+
                 <Link
                   href="/profile"
                   className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -147,6 +181,7 @@ export default function Nav({
                   <User className="h-4 w-4 text-indigo-600" />
                   My Profile
                 </Link>
+
                 <Link
                   href="/settings"
                   className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -154,8 +189,9 @@ export default function Nav({
                   <Settings className="h-4 w-4 text-indigo-600" />
                   Settings
                 </Link>
+
                 <button
-                  onClick={() => router.push("/home")}
+                  onClick={handleLogout}
                   className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <LogOut className="h-4 w-4 text-red-500" />
@@ -165,7 +201,7 @@ export default function Nav({
             </div>
           )}
 
-          {/* Mobile menu button */}
+          {/* ✅ Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -177,7 +213,7 @@ export default function Nav({
         </div>
       </nav>
 
-      {/* Mobile menu */}
+      {/* ✅ Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white dark:bg-gray-800 shadow-md border-t">
           <div className="flex flex-col gap-3 p-4">
@@ -191,6 +227,7 @@ export default function Nav({
                 {item.label}
               </Link>
             ))}
+
             {!hideAuthButtons && (
               <>
                 <Link

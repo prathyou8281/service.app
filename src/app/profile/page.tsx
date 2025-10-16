@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 
 // ✅ Define the shape of user data
 interface UserData {
+  id: number;
   username: string;
   email: string;
   phone: string;
@@ -29,22 +30,26 @@ export default function ProfilePage() {
   const [tempValue, setTempValue] = useState("");
   const router = useRouter();
 
+  // ✅ Load from DB via API if logged in
   useEffect(() => {
-    const storedUser = localStorage.getItem("userData");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser) as UserData);
-    } else {
-      // Default user data if none is stored
-      setUser({
-        username: "Guest User",
-        email: "guest@example.com",
-        phone: "+91 9999999999",
-        address: "Kannur, Kerala",
-        role: "Member",
-        joined: "October 2025",
-      });
+    const stored = localStorage.getItem("userData");
+    if (!stored) {
+      router.push("/user/login");
+      return;
     }
-  }, []);
+
+    const parsed = JSON.parse(stored);
+    fetch(`/api/auth/get-profile?id=${parsed.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
+        } else {
+          console.error("Failed to fetch user data");
+        }
+      })
+      .catch((err) => console.error(err));
+  }, [router]);
 
   const initials = user?.username ? user.username[0].toUpperCase() : "G";
 
@@ -54,16 +59,45 @@ export default function ProfilePage() {
     setTempValue(user[key]);
   };
 
-  const saveField = (key: keyof UserData) => {
-    if (!user) return;
-    const updated = { ...user, [key]: tempValue };
-    setUser(updated);
-    localStorage.setItem("userData", JSON.stringify(updated));
-    setEditingField(null);
-  };
-
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) =>
     setTempValue(e.target.value);
+
+  const saveField = async (key: keyof UserData) => {
+    if (!user) return;
+
+    const updated = { ...user, [key]: tempValue };
+    setUser(updated);
+    setEditingField(null);
+
+    // ✅ Update DB and localStorage
+    try {
+      const res = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: user.id, [key]: tempValue }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem("userData", JSON.stringify(updated));
+      } else {
+        alert("Failed to update profile field.");
+      }
+    } catch (err) {
+      console.error("Profile update error:", err);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("userData");
+    router.push("/user/login");
+  };
+
+  if (!user)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white text-lg">
+        Loading your profile...
+      </div>
+    );
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 text-white">
@@ -77,23 +111,20 @@ export default function ProfilePage() {
         </div>
 
         <h1 className="mt-5 text-3xl font-bold tracking-wide">
-          {user?.username || "Guest"}
+          {user.username}
         </h1>
-        <p className="text-gray-200 mt-1">{user?.email}</p>
+        <p className="text-gray-200 mt-1">{user.email}</p>
 
         <div className="flex gap-4 mt-6">
           <button
-            onClick={() => alert("Edit fields directly by clicking on them.")}
+            onClick={() => alert("Click on any field to edit it directly.")}
             className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-5 py-2 rounded-lg shadow transition-all"
           >
             <Edit className="h-4 w-4" /> Edit Profile
           </button>
 
           <button
-            onClick={() => {
-              localStorage.removeItem("userData");
-              router.push("/home");
-            }}
+            onClick={handleLogout}
             className="flex items-center gap-2 bg-red-600 hover:bg-red-500 px-5 py-2 rounded-lg shadow transition-all"
           >
             <LogOut className="h-4 w-4" /> Logout
@@ -141,12 +172,24 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div
-                  onClick={() => startEditing(item.key)}
-                  className="flex-1 cursor-pointer hover:text-white/90"
-                  title="Click to edit"
+                  onClick={() =>
+                    item.key !== "email" && item.key !== "role" && item.key !== "joined"
+                      ? startEditing(item.key)
+                      : undefined
+                  }
+                  className={`flex-1 cursor-pointer ${
+                    ["email", "role", "joined"].includes(item.key)
+                      ? "cursor-default"
+                      : "hover:text-white/90"
+                  }`}
+                  title={
+                    ["email", "role", "joined"].includes(item.key)
+                      ? ""
+                      : "Click to edit"
+                  }
                 >
                   <strong>{item.label}:</strong>{" "}
-                  <span className="text-gray-300">{user?.[item.key]}</span>
+                  <span className="text-gray-300">{user[item.key]}</span>
                 </div>
               )}
             </div>
