@@ -1,0 +1,13 @@
+/* profile-dropdown.css */
+
+.profile-dropdown button {
+  text-transform: lowercase;
+}
+
+.profile-dropdown span {
+  text-transform: lowercase;
+}
+
+.profile-dropdown a {
+  text-transform: lowercase;
+}
