@@ -1,17 +1,14 @@
 @import "tailwindcss";
 
-/* Define global theme variables */
+/* 🌑 Dark Cyan / Modern Theme */
 :root {
-  --background: linear-gradient(to bottom right, #4f46e5, #9333ea, #ec4899); /* default gradient */
-  --foreground: #171717;
-}
+  --background: #ffffff;      /* Darkest background */
+  --foreground: #C5C6C7;      /* Light gray text */
+  --accent: #00ffee;          /* Bright cyan accent */
+  --accent-hover: #00fff2;    /* Slightly darker cyan on hover */
 
-/* Dark mode overrides */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: linear-gradient(to bottom right, #1e3a8a, #6d28d9, #db2777);
-    --foreground: #f5f5f5;
-  }
+  --card-bg: rgba(30, 30, 40, 0.8);  /* Semi-transparent dark card */
+  --card-hover-bg: rgba(40, 40, 60, 0.9);
 }
 
 /* Tailwind inline theme bindings */
@@ -27,51 +24,48 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  @apply antialiased;
+  @apply antialiased transition-colors duration-500;
 }
 
-/* Reusable button classes */
+/* Buttons */
 .btn-primary {
-  @apply bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition hover:opacity-90;
+  @apply text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition;
+  background: var(--accent);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
 }
 
 .btn-secondary {
-  @apply bg-white text-indigo-600 px-6 py-3 rounded-xl font-semibold shadow-lg transition hover:bg-gray-100;
+  @apply text-[var(--foreground)] px-6 py-3 rounded-xl font-semibold shadow-lg transition;
+  background: #1F2833; /* secondary dark shade */
+  border: 2px solid var(--accent);
+}
+.btn-secondary:hover {
+  background: #0073ff;
+  border-color: var(--accent-hover);
 }
 
-/* Simple fade-in animation */
+/* Fade-in animation */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
 .animate-fadeInUp {
   animation: fadeInUp 0.8s ease-out forwards;
 }
 
-/* Reusable card */
+/* Card component */
 .card {
   background: var(--card-bg);
   backdrop-filter: blur(12px);
   border-radius: 1rem;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.25);
-
-  /* 👇 Add border */
-  border: 2px solid rgba(255, 255, 255, 0.25);
-
+  box-shadow: 0 8px 20px rgba(0, 255, 255, 0.15);
+  border: 2px solid rgba(102, 252, 241, 0.3);
   transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
 }
 .card:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
   background: var(--card-hover-bg);
-
-  /* 👇 Hover border accent */
   border-color: var(--accent);
 }
-

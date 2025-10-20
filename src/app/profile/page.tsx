@@ -23,6 +23,10 @@ interface UserData {
   address: string;
   role: string;
   joined: string;
+  shopName?: string;
+  shopLocation?: string;
+  skill?: string;
+  experience?: string;
 }
 
 export default function ProfilePage() {
@@ -31,7 +35,7 @@ export default function ProfilePage() {
   const [tempValue, setTempValue] = useState<string>("");
   const router = useRouter();
 
-  // ✅ Fetch user from DB if logged in
+  // ✅ Fetch user data
   useEffect(() => {
     const stored = localStorage.getItem("userData");
     if (!stored) {
@@ -58,35 +62,46 @@ export default function ProfilePage() {
   const startEditing = (key: keyof UserData) => {
     if (!user) return;
     setEditingField(key);
-    setTempValue(String(user[key] ?? "")); // ✅ fixed TypeScript type issue
+    setTempValue(String(user[key] ?? ""));
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) =>
     setTempValue(e.target.value);
 
-  // ✅ Save field changes
+  // ✅ Save field changes (sends full profile data)
   const saveField = async (key: keyof UserData) => {
     if (!user) return;
 
-    const updated = { ...user, [key]: tempValue };
-    setUser(updated);
+    const updatedUser = { ...user, [key]: tempValue };
+    setUser(updatedUser);
     setEditingField(null);
 
     try {
       const res = await fetch("/api/auth/update-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: user.id, [key]: tempValue }),
+        body: JSON.stringify({
+          id: user.id,
+          username: updatedUser.username,
+          phone: updatedUser.phone,
+          address: updatedUser.address,
+          role: updatedUser.role,
+          shopName: updatedUser.shopName,
+          shopLocation: updatedUser.shopLocation,
+          skill: updatedUser.skill,
+          experience: updatedUser.experience,
+        }),
       });
 
       const data = await res.json();
       if (data.success) {
-        localStorage.setItem("userData", JSON.stringify(updated));
+        localStorage.setItem("userData", JSON.stringify(updatedUser));
       } else {
-        alert("❌ Failed to update profile field.");
+        alert("❌ " + data.message);
       }
     } catch (err) {
       console.error("🚨 Profile update error:", err);
+      alert("❌ Failed to update profile field.");
     }
   };
 
@@ -101,6 +116,34 @@ export default function ProfilePage() {
         Loading your profile...
       </div>
     );
+
+  // 🧠 Define editable fields dynamically based on role
+  const commonFields = [
+    { icon: <User className="h-5 w-5 text-pink-400" />, label: "Full Name", key: "username" as const },
+    { icon: <Mail className="h-5 w-5 text-blue-400" />, label: "Email", key: "email" as const },
+    { icon: <Phone className="h-5 w-5 text-green-400" />, label: "Phone", key: "phone" as const },
+    { icon: <MapPin className="h-5 w-5 text-yellow-400" />, label: "Address", key: "address" as const },
+    { icon: <Shield className="h-5 w-5 text-indigo-400" />, label: "Role", key: "role" as const },
+    { icon: <Calendar className="h-5 w-5 text-purple-400" />, label: "Joined", key: "joined" as const },
+  ];
+
+  const vendorFields =
+    user.role === "Vendor"
+      ? [
+          { icon: <User className="h-5 w-5 text-yellow-300" />, label: "Shop Name", key: "shopName" as const },
+          { icon: <MapPin className="h-5 w-5 text-pink-300" />, label: "Shop Location", key: "shopLocation" as const },
+        ]
+      : [];
+
+  const technicianFields =
+    user.role === "Technician"
+      ? [
+          { icon: <User className="h-5 w-5 text-cyan-300" />, label: "Skill", key: "skill" as const },
+          { icon: <Calendar className="h-5 w-5 text-orange-300" />, label: "Experience", key: "experience" as const },
+        ]
+      : [];
+
+  const allFields = [...commonFields, ...vendorFields, ...technicianFields];
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 text-white">
@@ -144,16 +187,7 @@ export default function ProfilePage() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-200 text-base">
-          {(
-            [
-              { icon: <User className="h-5 w-5 text-pink-400" />, label: "Full Name", key: "username" as const },
-              { icon: <Mail className="h-5 w-5 text-blue-400" />, label: "Email", key: "email" as const },
-              { icon: <Phone className="h-5 w-5 text-green-400" />, label: "Phone", key: "phone" as const },
-              { icon: <MapPin className="h-5 w-5 text-yellow-400" />, label: "Address", key: "address" as const },
-              { icon: <Shield className="h-5 w-5 text-indigo-400" />, label: "Role", key: "role" as const },
-              { icon: <Calendar className="h-5 w-5 text-purple-400" />, label: "Joined", key: "joined" as const },
-            ] as const
-          ).map((item) => (
+          {allFields.map((item) => (
             <div
               key={item.key}
               className="flex items-center gap-3 group hover:bg-white/5 rounded-lg px-3 py-2 transition-all"
@@ -194,7 +228,9 @@ export default function ProfilePage() {
                   }
                 >
                   <strong>{item.label}:</strong>{" "}
-                  <span className="text-gray-300">{user[item.key]}</span>
+                  <span className="text-gray-300">
+                    {user[item.key] || "—"}
+                  </span>
                 </div>
               )}
             </div>

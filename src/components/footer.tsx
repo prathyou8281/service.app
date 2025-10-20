@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Footer({
   logoSrc = "/logo.png",
@@ -14,7 +15,7 @@ export default function Footer({
   const year = new Date().getFullYear();
 
   const linkClass =
-    "text-sm text-foreground/80 hover:text-foreground transition-colors";
+    "text-sm text-foreground/80 hover:text-primary transition-colors";
   const titleClass =
     "text-sm font-semibold tracking-tight text-foreground mb-3";
 
@@ -38,18 +39,20 @@ export default function Footer({
               </span>
             </div>
             <p className="mt-4 text-sm leading-6 text-foreground/70">
-              We craft reliable tech experiences — modern apps, premium devices,
-              and friendly support. Let’s build something great together.
+              We craft reliable digital experiences — from websites and apps to
+              digital marketing and brand strategy. Let’s build your online
+              success story together.
             </p>
 
             {/* Socials */}
             <div className="mt-5 flex items-center gap-3">
-              <a
-                href="#"
+              {/* X / Twitter */}
+              <Link
+                href="https://twitter.com/"
                 aria-label="Visit us on X"
+                target="_blank"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-black/10 bg-white/70 shadow-sm hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
               >
-                {/* X / Twitter */}
                 <svg
                   viewBox="0 0 24 24"
                   aria-hidden="true"
@@ -58,13 +61,15 @@ export default function Footer({
                 >
                   <path d="M18.244 2H21l-6.53 7.46L22 22h-6.9l-4.34-5.71L5.6 22H3l7.03-8.03L2 2h6.9l3.96 5.26L18.244 2Zm-2.41 18h2.29L8.27 4h-2.3l9.86 16Z" />
                 </svg>
-              </a>
-              <a
-                href="#"
+              </Link>
+
+              {/* Instagram */}
+              <Link
+                href="https://instagram.com/"
                 aria-label="Visit us on Instagram"
+                target="_blank"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-black/10 bg-white/70 shadow-sm hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
               >
-                {/* Instagram */}
                 <svg
                   viewBox="0 0 24 24"
                   aria-hidden="true"
@@ -73,13 +78,15 @@ export default function Footer({
                 >
                   <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3.5a5.5 5.5 0 1 1 0 11.001 5.5 5.5 0 0 1 0-11Zm0 2a3.5 3.5 0 1 0 .001 7.001A3.5 3.5 0 0 0 12 9.5Zm5.75-.25a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                 </svg>
-              </a>
-              <a
-                href="#"
+              </Link>
+
+              {/* Facebook */}
+              <Link
+                href="https://facebook.com/"
                 aria-label="Visit us on Facebook"
+                target="_blank"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-black/10 bg-white/70 shadow-sm hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
               >
-                {/* Facebook */}
                 <svg
                   viewBox="0 0 24 24"
                   aria-hidden="true"
@@ -88,7 +95,7 @@ export default function Footer({
                 >
                   <path d="M13.5 9H16V6h-2.5C11.57 6 10 7.57 10 9.5V11H8v3h2v7h3v-7h2.09L15.5 11H13v-1.5c0-.28.22-.5.5-.5Z" />
                 </svg>
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -97,37 +104,34 @@ export default function Footer({
             <div>
               <h4 className={titleClass}>Company</h4>
               <ul className="space-y-2">
-                <li><a href="#" className={linkClass}>About</a></li>
-                <li><a href="#" className={linkClass}>Careers</a></li>
-                <li><a href="#" className={linkClass}>Press</a></li>
-                <li><a href="#" className={linkClass}>Contact</a></li>
+                <li><Link href="/about" className={linkClass}>About</Link></li>
+                <li><Link href="/careers" className={linkClass}>Careers</Link></li>
+                <li><Link href="/press" className={linkClass}>Press</Link></li>
+                <li><Link href="/contact" className={linkClass}>Contact</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className={titleClass}>Resources</h4>
+              <h4 className={titleClass}>Services</h4>
               <ul className="space-y-2">
-                <li><a href="#" className={linkClass}>Blog</a></li>
-                <li><a href="#" className={linkClass}>Guides</a></li>
-                <li><a href="#" className={linkClass}>Docs</a></li>
-                <li><a href="#" className={linkClass}>Community</a></li>
+                <li><Link href="/services/web-development" className={linkClass}>Website Development</Link></li>
+                <li><Link href="/services/app-development" className={linkClass}>App Development</Link></li>
+                <li><Link href="/services/digital-marketing" className={linkClass}>Digital Marketing</Link></li>
+                <li><Link href="/services/branding" className={linkClass}>Branding & Design</Link></li>
               </ul>
             </div>
 
             <div>
               <h4 className={titleClass}>Support</h4>
               <ul className="space-y-2">
-                <li><a href="#" className={linkClass}>Help Center</a></li>
-                <li><a href="#" className={linkClass}>Status</a></li>
-                <li><a href="#" className={linkClass}>Privacy</a></li>
-                <li><a href="#" className={linkClass}>Terms</a></li>
+                <li><Link href="/help" className={linkClass}>Help Center</Link></li>
+                <li><Link href="/status" className={linkClass}>System Status</Link></li>
+                <li><Link href="/privacy" className={linkClass}>Privacy Policy</Link></li>
+                <li><Link href="/terms" className={linkClass}>Terms & Conditions</Link></li>
               </ul>
             </div>
           </div>
         </div>
-
-        {/* Newsletter */}
-       
       </div>
 
       {/* Bottom bar */}
@@ -137,11 +141,17 @@ export default function Footer({
             © {year} {brandName}. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <a href="#" className="text-xs text-foreground/70 hover:text-foreground">Privacy</a>
+            <Link href="/privacy" className="text-xs text-foreground/70 hover:text-primary">
+              Privacy
+            </Link>
             <span className="h-3 w-px bg-foreground/20" />
-            <a href="#" className="text-xs text-foreground/70 hover:text-foreground">Terms</a>
+            <Link href="/terms" className="text-xs text-foreground/70 hover:text-primary">
+              Terms
+            </Link>
             <span className="h-3 w-px bg-foreground/20" />
-            <a href="#" className="text-xs text-foreground/70 hover:text-foreground">Cookies</a>
+            <Link href="/cookies" className="text-xs text-foreground/70 hover:text-primary">
+              Cookies
+            </Link>
           </div>
         </div>
       </div>

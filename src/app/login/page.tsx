@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  // ✅ If already logged in, redirect
+  // ✅ Redirect if already logged in
   useEffect(() => {
     const storedUser = localStorage.getItem("userData");
     if (storedUser) router.push("/welcome");
@@ -43,7 +43,7 @@ export default function LoginPage() {
       // ✅ Save user info
       localStorage.setItem("userData", JSON.stringify(data.user));
 
-      // ✅ Redirect based on role (from backend)
+      // ✅ Redirect based on role
       router.push(data.redirect);
     } catch (err) {
       console.error("Login error:", err);
@@ -52,9 +52,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center relative bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600">
-      <div className="bg-white/20 backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-96 border border-white/30">
-        <h1 className="text-4xl font-extrabold text-center text-white mb-8">
+    <div className="min-h-screen w-full flex items-center justify-center relative bg-[var(--background)] text-[var(--foreground)] transition-colors duration-500">
+      <div className="card w-96 p-10 bg-white/60 dark:bg-white/10 border border-white/30 shadow-2xl backdrop-blur-2xl animate-fadeInUp">
+        <h1 className="text-4xl font-extrabold text-center mb-8 text-[var(--foreground)]">
           Login
         </h1>
 
@@ -64,20 +64,20 @@ export default function LoginPage() {
             placeholder="Email or Username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
           />
 
           <div className="text-right">
             <Link
               href="/user/forgetpassword"
-              className="text-sm text-yellow-300 hover:underline"
+              className="text-sm text-[var(--accent)] hover:underline"
             >
               Forgot Password?
             </Link>
@@ -85,7 +85,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="mt-4 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl shadow-lg transition"
+            className="btn-primary mt-4 w-full text-center"
           >
             Login
           </button>
@@ -93,13 +93,13 @@ export default function LoginPage() {
 
         <div className="flex items-center my-6">
           <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-4 text-white text-sm">OR</span>
+          <span className="mx-4 text-sm opacity-70">OR</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
         <button
           onClick={() => signIn("google", { callbackUrl: "/welcome" })}
-          className="w-full bg-white text-black font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
+          className="w-full bg-white text-black font-semibold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
         >
           <img
             src="https://developers.google.com/identity/images/g-logo.png"
@@ -109,12 +109,9 @@ export default function LoginPage() {
           Login with Google
         </button>
 
-        <p className="text-center text-sm text-white mt-6">
+        <p className="text-center text-sm mt-6 opacity-80">
           Don’t have an account?{" "}
-          <Link
-            href="/user/register"
-            className="text-yellow-300 hover:underline"
-          >
+          <Link href="/user/register" className="text-[var(--accent)] hover:underline">
             Register
           </Link>
         </p>

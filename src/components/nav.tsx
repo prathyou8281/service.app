@@ -111,7 +111,7 @@ export default function Nav({
           {/* Desktop auth buttons */}
           {!hideAuthButtons && (
             <div className="hidden md:flex gap-3">
-              <Link href="/user/login" className="rounded-xl border px-3 py-1.5 text-sm">
+              <Link href="/login" className="rounded-xl border px-3 py-1.5 text-sm">
                 Login
               </Link>
               <Link
@@ -231,14 +231,14 @@ export default function Nav({
             {!hideAuthButtons && (
               <>
                 <Link
-                  href="/user/login"
+                  href="/login"
                   className="rounded-xl border px-3 py-1.5 text-sm text-center"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Login
                 </Link>
                 <Link
-                  href="/user/register"
+                  href="/register"
                   className="rounded-xl bg-indigo-600 px-3.5 py-1.5 text-sm text-white text-center"
                   onClick={() => setMobileMenuOpen(false)}
                 >

@@ -7,6 +7,11 @@ interface RegisterBody {
   email: string;
   password: string;
   role: string;
+  phone?: string;
+  shopName?: string;
+  shopLocation?: string;
+  skill?: string;
+  experience?: string;
 }
 
 interface UserRow extends RowDataPacket {
@@ -19,9 +24,19 @@ export async function POST(req: Request) {
   let db: mysql.Connection | null = null;
 
   try {
-    const { username, email, password, role } = (await req.json()) as RegisterBody;
+    const {
+      username,
+      email,
+      password,
+      role,
+      phone,
+      shopName,
+      shopLocation,
+      skill,
+      experience,
+    } = (await req.json()) as RegisterBody;
 
-    // ✅ Validate input
+    // ✅ Basic validation
     if (!username || !email || !password || !role) {
       return NextResponse.json(
         { success: false, message: "All fields and role are required." },
@@ -29,7 +44,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Hash password securely
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // ✅ Connect to MySQL
@@ -54,15 +69,35 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Insert user with selected role
-    await db.execute(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [username, email, hashedPassword, role]
-    );
+    // ✅ Insert user (dynamic columns for role)
+    let query =
+      "INSERT INTO users (username, email, password, role, phone";
+    let values: (string | null)[] = [
+      username,
+      email,
+      hashedPassword,
+      role,
+      phone || null,
+    ];
+    let placeholders = "?, ?, ?, ?, ?";
+
+    if (role === "Vendor") {
+      query += ", shopName, shopLocation";
+      placeholders += ", ?, ?";
+      values.push(shopName || null, shopLocation || null);
+    } else if (role === "Technician") {
+      query += ", skill, experience";
+      placeholders += ", ?, ?";
+      values.push(skill || null, experience || null);
+    }
+
+    query += `) VALUES (${placeholders})`;
+
+    await db.execute(query, values);
 
     return NextResponse.json({
       success: true,
-      message: "Registration successful.",
+      message: `${role} registration successful.`,
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
