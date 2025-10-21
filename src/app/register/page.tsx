@@ -62,7 +62,7 @@ export default function RegisterPage() {
     }
 
     alert(`✅ ${role} registration successful! Please login.`);
-    router.push("/user/login");
+    router.push("/login");
   };
 
   const fadeIn = {
@@ -273,7 +273,7 @@ export default function RegisterPage() {
                 <p className="text-center text-sm mt-6 opacity-80">
                   Already have an account?{" "}
                   <Link
-                    href="/user/login"
+                    href="/login"
                     className="text-[var(--accent)] hover:text-[var(--accent-hover)] underline-offset-2 hover:underline"
                   >
                     Login

@@ -10,15 +10,15 @@ export default function VendorDashboard() {
 
   useEffect(() => {
     const data = localStorage.getItem("userData");
-    if (!data) router.push("/user/login");
+    if (!data) router.push("/login");
     const parsed = JSON.parse(data!);
-    if (parsed.role !== "Vendor") router.push("/user/login");
+    if (parsed.role !== "Vendor") router.push("/login");
     setUser(parsed);
   }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem("userData");
-    router.push("/user/login");
+    router.push("/");
   };
 
   return (

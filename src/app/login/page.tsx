@@ -10,21 +10,49 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // ✅ Redirect if already logged in
+  // ✅ Auto-redirect only if valid stored user
   useEffect(() => {
-    const storedUser = localStorage.getItem("userData");
-    if (storedUser) router.push("/welcome");
+    try {
+      const storedUser = localStorage.getItem("userData");
+      if (!storedUser) return;
+
+      const parsed = JSON.parse(storedUser);
+      if (parsed && parsed.email && parsed.role) {
+        // Redirect based on stored role
+        switch (parsed.role.toLowerCase()) {
+          case "admin":
+            router.replace("/admin/dashboard");
+            break;
+          case "vendor":
+            router.replace("/vendor/dashboard");
+            break;
+          case "technician":
+            router.replace("/technician/dashboard");
+            break;
+          default:
+            router.replace("/welcome");
+        }
+      } else {
+        localStorage.removeItem("userData");
+      }
+    } catch {
+      localStorage.removeItem("userData");
+    }
   }, [router]);
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
 
     if (!email || !password) {
       setError("⚠️ Please enter both email and password!");
       return;
     }
+
+    setLoading(true);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -37,17 +65,20 @@ export default function LoginPage() {
 
       if (!res.ok || !data.success) {
         setError(data.message || "❌ Invalid email or password");
+        setLoading(false);
         return;
       }
 
-      // ✅ Save user info
+      // ✅ Save verified user info
       localStorage.setItem("userData", JSON.stringify(data.user));
 
-      // ✅ Redirect based on role
+      // ✅ Redirect based on verified backend role
       router.push(data.redirect);
     } catch (err) {
       console.error("Login error:", err);
       setError("⚠️ Server error, please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,6 +96,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
+            disabled={loading}
           />
           <input
             type="password"
@@ -72,11 +104,12 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
+            disabled={loading}
           />
 
           <div className="text-right">
             <Link
-              href="/user/forgetpassword"
+              href="/forgetpassword"
               className="text-sm text-[var(--accent)] hover:underline"
             >
               Forgot Password?
@@ -85,9 +118,12 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="btn-primary mt-4 w-full text-center"
+            disabled={loading}
+            className={`btn-primary mt-4 w-full text-center ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -98,6 +134,7 @@ export default function LoginPage() {
         </div>
 
         <button
+          disabled={loading}
           onClick={() => signIn("google", { callbackUrl: "/welcome" })}
           className="w-full bg-white text-black font-semibold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
         >
@@ -111,7 +148,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm mt-6 opacity-80">
           Don’t have an account?{" "}
-          <Link href="/user/register" className="text-[var(--accent)] hover:underline">
+          <Link href="/register" className="text-[var(--accent)] hover:underline">
             Register
           </Link>
         </p>

@@ -86,7 +86,7 @@ export default function Nav({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="btn-secondary px-6 py-2 text-sm font-semibold"
-                onClick={() => router.push("/user/register")}
+                onClick={() => router.push("/register")}
               >
                 Register
               </motion.button>
@@ -130,7 +130,7 @@ export default function Nav({
                   Login
                 </Link>
                 <Link
-                  href="/user/register"
+                  href="/register"
                   className="btn-secondary w-full text-center"
                   onClick={() => setMobileMenuOpen(false)}
                 >

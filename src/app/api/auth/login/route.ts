@@ -7,12 +7,14 @@ interface LoginBody {
   password: string;
 }
 
-interface UserRow extends RowDataPacket {
+interface GenericUser extends RowDataPacket {
   id: number;
-  username: string;
+  username?: string;
+  fullName?: string;
+  shopName?: string;
   email: string;
   password: string;
-  role: string;
+  role?: string;
 }
 
 export async function POST(req: Request) {
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Connect to MySQL
+    // ✅ Connect to DB
     db = await mysql.createConnection({
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),
@@ -37,67 +39,100 @@ export async function POST(req: Request) {
       database: process.env.DB_NAME,
     });
 
-    // ✅ Check for user by email or username
-    const [rows] = await db.execute<UserRow[]>(
-      "SELECT * FROM users WHERE email = ? OR username = ? LIMIT 1",
-      [email, email]
+    let user: GenericUser | null = null;
+    let role: string = "";
+    let redirect: string = "";
+
+    // 1️⃣ Check Admins table
+    const [admins] = await db.execute<GenericUser[]>(
+      "SELECT * FROM admins WHERE email = ? LIMIT 1",
+      [email]
     );
-
-    if (rows.length === 0) {
-      return NextResponse.json(
-        { success: false, message: "Invalid email or password" },
-        { status: 401 }
-      );
-    }
-
-    const user = rows[0];
-    const validPassword = await bcrypt.compare(password, user.password);
-
-    if (!validPassword) {
-      return NextResponse.json(
-        { success: false, message: "Invalid email or password" },
-        { status: 401 }
-      );
-    }
-
-    console.log(`✅ Login success for ${user.username} (${user.role})`);
-
-    // ✅ Role-based redirect logic
-    let redirect = "/welcome";
-    switch (user.role?.toLowerCase()) {
-      case "admin":
+    if (admins.length > 0) {
+      const admin = admins[0];
+      const isValid = await bcrypt.compare(password, admin.password);
+      if (isValid) {
+        user = admin;
+        role = "Admin";
         redirect = "/admin/dashboard";
-        break;
-      case "vendor":
-        redirect = "/vendor/dashboard";
-        break;
-      case "technician":
-        redirect = "/technician/dashboard";
-        break;
-      default:
-        redirect = "/welcome";
-        break;
+      }
     }
 
-    // ✅ Return response
+    // 2️⃣ Check Vendors table
+    if (!user) {
+      const [vendors] = await db.execute<GenericUser[]>(
+        "SELECT * FROM vendors WHERE email = ? LIMIT 1",
+        [email]
+      );
+      if (vendors.length > 0) {
+        const vendor = vendors[0];
+        const isValid = await bcrypt.compare(password, vendor.password);
+        if (isValid) {
+          user = vendor;
+          role = "Vendor";
+          redirect = "/vendor/dashboard";
+        }
+      }
+    }
+
+    // 3️⃣ Check Technicians table
+    if (!user) {
+      const [technicians] = await db.execute<GenericUser[]>(
+        "SELECT * FROM technicians WHERE email = ? LIMIT 1",
+        [email]
+      );
+      if (technicians.length > 0) {
+        const tech = technicians[0];
+        const isValid = await bcrypt.compare(password, tech.password);
+        if (isValid) {
+          user = tech;
+          role = "Technician";
+          redirect = "/technician/dashboard";
+        }
+      }
+    }
+
+    // 4️⃣ Check Users table
+    if (!user) {
+      const [users] = await db.execute<GenericUser[]>(
+        "SELECT * FROM users WHERE email = ? OR username = ? LIMIT 1",
+        [email, email]
+      );
+      if (users.length > 0) {
+        const usr = users[0];
+        const isValid = await bcrypt.compare(password, usr.password);
+        if (isValid) {
+          user = usr;
+          role = usr.role || "User";
+          redirect = "/welcome";
+        }
+      }
+    }
+
+    // ❌ If no match found
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
+
+    console.log(`✅ Login success for ${email} (${role})`);
+
+    // ✅ Return success
     return NextResponse.json({
       success: true,
       message: "Login successful",
       user: {
         id: user.id,
-        username: user.username,
+        username: user.username || user.fullName || user.shopName || "User",
         email: user.email,
-        role: user.role,
+        role,
       },
       redirect,
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("🚨 Login error:", error.message);
-    } else {
-      console.error("🚨 Login error: Unknown error", error);
-    }
-
+    console.error("🚨 Login Error:", error);
     return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }
