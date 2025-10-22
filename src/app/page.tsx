@@ -27,7 +27,7 @@ export default function Home() {
             <a href="/explore" className="btn-primary">
               Explore Services
             </a>
-            <a href="/user/login" className="btn-secondary">
+            <a href="/login" className="btn-secondary">
               Book Now
             </a>
           </div>
