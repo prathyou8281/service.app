@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
+import bcrypt from "bcryptjs";
 
-/* -----------------------------------------
-   ✅ MySQL Connection
------------------------------------------- */
+/* ---------------------- DATABASE CONNECTION ---------------------- */
 async function connectDB() {
   const db = await mysql.createConnection({
     host: "127.0.0.1",
@@ -15,9 +14,7 @@ async function connectDB() {
   return db;
 }
 
-/* -----------------------------------------
-   🔹 GET — Fetch all users
------------------------------------------- */
+/* ---------------------- GET USERS ---------------------- */
 export async function GET() {
   try {
     const db = await connectDB();
@@ -25,32 +22,24 @@ export async function GET() {
     await db.end();
     return NextResponse.json({ success: true, data: rows });
   } catch (err: any) {
-    console.error("GET /users error:", err);
     return NextResponse.json({ success: false, error: err.message });
   }
 }
 
-/* -----------------------------------------
-   🔹 POST — Add New User
------------------------------------------- */
+/* ---------------------- ADD USER ---------------------- */
 export async function POST(req: Request) {
   try {
     const { username, email, password, role, phone, address } = await req.json();
-
-    if (!username || !email || !password || !role) {
+    if (!username || !email || !role)
       return NextResponse.json({
         success: false,
         message: "Missing required fields",
       });
-    }
 
     const db = await connectDB();
 
-    // Check for duplicates
-    const [exists]: any = await db.query(
-      "SELECT id FROM users WHERE email=?",
-      [email]
-    );
+    // Check duplicate email
+    const [exists]: any = await db.query("SELECT id FROM users WHERE email=?", [email]);
     if (exists.length > 0) {
       await db.end();
       return NextResponse.json({
@@ -59,91 +48,55 @@ export async function POST(req: Request) {
       });
     }
 
-    // ✅ Default bcrypt-hashed password for simplicity (12345)
-    const defaultHash =
-      "$2b$10$O5z2UqH.XrVPlYJFrQkD8uhyOjxCv3.HZCnEfDR7E5pJmN6N7Pmqi";
+    const plainPassword = password || "12345"; // default if not provided
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
     const [result]: any = await db.query(
       `INSERT INTO users (username, email, password, role, phone, address)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [username, email, defaultHash, role, phone || null, address || null]
+      [username, email, hashedPassword, role, phone || null, address || null]
     );
-
     await db.end();
     return NextResponse.json({
       success: true,
       message: "User added successfully",
-      userId: result.insertId,
+      id: result.insertId,
     });
   } catch (err: any) {
-    console.error("POST /users error:", err);
     return NextResponse.json({ success: false, error: err.message });
   }
 }
 
-/* -----------------------------------------
-   🔹 PUT — Update User
------------------------------------------- */
+/* ---------------------- UPDATE USER ---------------------- */
 export async function PUT(req: Request) {
   try {
-    const {
-      id,
-      username,
-      email,
-      role,
-      phone,
-      address,
-      shopName,
-      shopLocation,
-      skill,
-      experience,
-    } = await req.json();
-
-    if (!id)
-      return NextResponse.json({ success: false, message: "Missing user ID" });
+    const { id, username, email, role, phone, address } = await req.json();
+    if (!id) return NextResponse.json({ success: false, message: "User ID required" });
 
     const db = await connectDB();
     await db.query(
-      `UPDATE users SET username=?, email=?, role=?, phone=?, address=?, shopName=?, shopLocation=?, skill=?, experience=? WHERE id=?`,
-      [
-        username,
-        email,
-        role,
-        phone,
-        address,
-        shopName,
-        shopLocation,
-        skill,
-        experience,
-        id,
-      ]
+      "UPDATE users SET username=?, email=?, role=?, phone=?, address=? WHERE id=?",
+      [username, email, role, phone, address, id]
     );
-
     await db.end();
-    return NextResponse.json({ success: true, message: "User updated" });
+    return NextResponse.json({ success: true, message: "User updated successfully" });
   } catch (err: any) {
-    console.error("PUT /users error:", err);
     return NextResponse.json({ success: false, error: err.message });
   }
 }
 
-/* -----------------------------------------
-   🔹 DELETE — Remove User
------------------------------------------- */
+/* ---------------------- DELETE USER ---------------------- */
 export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
-    if (!id)
-      return NextResponse.json({ success: false, message: "Missing user ID" });
+    if (!id) return NextResponse.json({ success: false, message: "Missing ID" });
 
     const db = await connectDB();
     await db.query("DELETE FROM users WHERE id=?", [id]);
     await db.end();
-
-    return NextResponse.json({ success: true, message: "User deleted" });
+    return NextResponse.json({ success: true, message: "User deleted successfully" });
   } catch (err: any) {
-    console.error("DELETE /users error:", err);
     return NextResponse.json({ success: false, error: err.message });
   }
 }
