@@ -29,12 +29,22 @@ export async function GET() {
 /* ---------------------- ADD USER ---------------------- */
 export async function POST(req: Request) {
   try {
-    const { username, email, password, role, phone, address } = await req.json();
-    if (!username || !email || !role)
-      return NextResponse.json({
-        success: false,
-        message: "Missing required fields",
-      });
+  const { username, email, password, phone, address } = await req.json();
+
+let missingFields = [];
+if (!username) missingFields.push("username");
+if (!email) missingFields.push("email");
+if (!password) missingFields.push("password");
+if (!phone) missingFields.push("phone");
+if (!address) missingFields.push("address");
+
+if (missingFields.length > 0) {
+  return NextResponse.json({
+    success: false,
+    message: `Missing required field(s): ${missingFields.join(", ")}`,
+  });
+}
+
 
     const db = await connectDB();
 
@@ -52,9 +62,9 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
     const [result]: any = await db.query(
-      `INSERT INTO users (username, email, password, role, phone, address)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [username, email, hashedPassword, role, phone || null, address || null]
+      `INSERT INTO users (username, email, password, phone, address)
+       VALUES (?,  ?, ?, ?, ?)`,
+      [username, email, hashedPassword, phone || null, address || null]
     );
     await db.end();
     return NextResponse.json({
@@ -70,13 +80,13 @@ export async function POST(req: Request) {
 /* ---------------------- UPDATE USER ---------------------- */
 export async function PUT(req: Request) {
   try {
-    const { id, username, email, role, phone, address } = await req.json();
+    const { id, username, email, phone, address } = await req.json();
     if (!id) return NextResponse.json({ success: false, message: "User ID required" });
 
     const db = await connectDB();
     await db.query(
-      "UPDATE users SET username=?, email=?, role=?, phone=?, address=? WHERE id=?",
-      [username, email, role, phone, address, id]
+      "UPDATE users SET username=?, email=?, phone=?, address=? WHERE id=?",
+      [username, email,  phone, address, id]
     );
     await db.end();
     return NextResponse.json({ success: true, message: "User updated successfully" });

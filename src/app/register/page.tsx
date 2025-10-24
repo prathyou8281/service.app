@@ -8,7 +8,6 @@ import {
   User,
   Store,
   Wrench,
-  Shield,
   Phone,
   Mail,
   Lock,
@@ -57,7 +56,7 @@ export default function RegisterPage() {
     const data = await res.json();
 
     if (!data.success) {
-      alert(data.message);
+      alert(data.message || data.error);
       return;
     }
 
@@ -79,18 +78,17 @@ export default function RegisterPage() {
             initial="hidden"
             animate="show"
             exit={{ opacity: 0, scale: 0.9 }}
-            className="card relative z-10 p-10 sm:p-16 shadow-2xl max-w-5xl w-[90%] animate-fadeInUp"
+            className="card relative z-10 p-10 sm:p-16 shadow-2xl max-w-5xl w-[90%]"
           >
             <h1 className="text-4xl font-extrabold text-center mb-10 text-[var(--accent)]">
               Select Your Role
             </h1>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
               {[
                 { label: "User", icon: <User className="w-10 h-10 mb-3 text-[var(--accent)]" /> },
                 { label: "Vendor", icon: <Store className="w-10 h-10 mb-3 text-[var(--accent)]" /> },
                 { label: "Technician", icon: <Wrench className="w-10 h-10 mb-3 text-[var(--accent)]" /> },
-                { label: "Admin", icon: <Shield className="w-10 h-10 mb-3 text-[var(--accent)]" /> },
               ].map((r) => (
                 <motion.button
                   key={r.label}
@@ -100,7 +98,7 @@ export default function RegisterPage() {
                     setRole(r.label);
                     setStep("form");
                   }}
-                  className="flex flex-col items-center justify-center font-semibold bg-[var(--card-bg)] border border-[var(--accent)]/20 p-6 rounded-2xl shadow-lg hover:bg-[var(--card-hover-bg)] transition-all text-[var(--foreground)]"
+                  className="flex flex-col items-center justify-center font-semibold bg-[var(--card-bg)] border border-[var(--accent)]/20 p-6 rounded-2xl shadow-lg hover:bg-[var(--card-hover-bg)] transition-all"
                 >
                   {r.icon}
                   {r.label}
@@ -118,7 +116,7 @@ export default function RegisterPage() {
             initial="hidden"
             animate="show"
             exit={{ opacity: 0, y: -30 }}
-            className="card relative z-10 shadow-2xl p-10 sm:p-16 max-w-6xl w-[90%] animate-fadeInUp"
+            className="card relative z-10 shadow-2xl p-10 sm:p-16 max-w-6xl w-[90%]"
           >
             <div className="flex flex-col lg:flex-row gap-12 items-center justify-between">
               <motion.div
@@ -131,9 +129,6 @@ export default function RegisterPage() {
                   Register as{" "}
                   <span className="text-[var(--accent)]">{role}</span>
                 </h2>
-                <p className="opacity-80 mb-8">
-                  Fill in your details below to create your account.
-                </p>
                 <button
                   onClick={() => setStep("select")}
                   className="text-xs underline text-[var(--accent-hover)] mb-6 hover:text-[var(--accent)] transition"
@@ -141,22 +136,20 @@ export default function RegisterPage() {
                   Change Role
                 </button>
 
-                <form
-                  onSubmit={handleRegister}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                >
-                  {/* Basic Fields */}
+                <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Username */}
                   <div className="flex items-center gap-3 bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--accent)]/20">
                     <User className="text-[var(--accent)] w-5 h-5" />
                     <input
                       type="text"
-                      placeholder="Full Name"
+                      placeholder="Username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
+                      className="bg-transparent flex-1 outline-none placeholder-gray-400"
                     />
                   </div>
 
+                  {/* Email */}
                   <div className="flex items-center gap-3 bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--accent)]/20">
                     <Mail className="text-[var(--accent)] w-5 h-5" />
                     <input
@@ -164,10 +157,11 @@ export default function RegisterPage() {
                       placeholder="Email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
+                      className="bg-transparent flex-1 outline-none placeholder-gray-400"
                     />
                   </div>
 
+                  {/* Phone */}
                   <div className="flex items-center gap-3 bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--accent)]/20">
                     <Phone className="text-[var(--accent)] w-5 h-5" />
                     <input
@@ -175,10 +169,11 @@ export default function RegisterPage() {
                       placeholder="Phone Number"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
+                      className="bg-transparent flex-1 outline-none placeholder-gray-400"
                     />
                   </div>
 
+                  {/* Password */}
                   <div className="flex items-center gap-3 bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--accent)]/20">
                     <Lock className="text-[var(--accent)] w-5 h-5" />
                     <input
@@ -186,7 +181,7 @@ export default function RegisterPage() {
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
+                      className="bg-transparent flex-1 outline-none placeholder-gray-400"
                     />
                   </div>
 
@@ -200,7 +195,7 @@ export default function RegisterPage() {
                           placeholder="Shop Name"
                           value={shopName}
                           onChange={(e) => setShopName(e.target.value)}
-                          className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
+                          className="bg-transparent flex-1 outline-none placeholder-gray-400"
                         />
                       </div>
 
@@ -211,27 +206,8 @@ export default function RegisterPage() {
                           placeholder="Shop Location"
                           value={shopLocation}
                           onChange={(e) => setShopLocation(e.target.value)}
-                          className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
+                          className="bg-transparent flex-1 outline-none placeholder-gray-400"
                         />
-                      </div>
-
-                      <div className="flex items-center gap-3 bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--accent)]/20 col-span-2">
-                        <Briefcase className="text-[var(--accent)] w-5 h-5" />
-                        <input
-                          type="text"
-                          placeholder="Search or select service"
-                          value={skill}
-                          onChange={(e) => setSkill(e.target.value)}
-                          list="serviceOptions"
-                          className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
-                        />
-                        <datalist id="serviceOptions">
-                          <option value="Web Development" />
-                          <option value="Digital Marketing" />
-                          <option value="UI/UX Design" />
-                          <option value="PC & Laptop Repair" />
-                          <option value="CCTV Installation" />
-                        </datalist>
                       </div>
                     </>
                   )}
@@ -246,9 +222,10 @@ export default function RegisterPage() {
                           placeholder="Skill / Specialization"
                           value={skill}
                           onChange={(e) => setSkill(e.target.value)}
-                          className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
+                          className="bg-transparent flex-1 outline-none placeholder-gray-400"
                         />
                       </div>
+
                       <div className="flex items-center gap-3 bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--accent)]/20">
                         <Briefcase className="text-[var(--accent)] w-5 h-5" />
                         <input
@@ -256,7 +233,7 @@ export default function RegisterPage() {
                           placeholder="Experience (e.g., 3 Years)"
                           value={experience}
                           onChange={(e) => setExperience(e.target.value)}
-                          className="bg-transparent flex-1 outline-none placeholder-gray-400 text-[var(--foreground)]"
+                          className="bg-transparent flex-1 outline-none placeholder-gray-400"
                         />
                       </div>
                     </>
@@ -278,21 +255,6 @@ export default function RegisterPage() {
                   >
                     Login
                   </Link>
-                </p>
-              </motion.div>
-
-              {/* Right Decorative Side */}
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                className="hidden lg:flex flex-col items-center justify-center flex-1 text-center space-y-6"
-              >
-                <div className="w-48 h-48 rounded-full bg-[var(--accent)]/20 blur-2xl" />
-                <h3 className="text-2xl font-semibold">Welcome to Our Platform</h3>
-                <p className="opacity-80 max-w-sm">
-                  Join our growing network of users, vendors, and technicians.
-                  Let’s build the future of IT and service excellence together!
                 </p>
               </motion.div>
             </div>
