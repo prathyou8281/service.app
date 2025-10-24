@@ -48,12 +48,13 @@ export async function POST(req: Request) {
 
     // ✅ Connect Database
     db = await mysql.createConnection({
-      host: "127.0.0.1",
-      port: 3307,
-      user: "root",
-      password: "prathyu8281",
-      database: "serviceapp",
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
     });
+
 
     // Prevent duplicates across all tables
     const [exists] = await db.query<RowDataPacket[]>(

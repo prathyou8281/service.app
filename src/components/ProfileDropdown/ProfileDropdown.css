@@ -1,13 +1,149 @@
-/* profile-dropdown.css */
+"use client";
 
-.profile-dropdown button {
-  text-transform: lowercase;
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { User, Settings, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface UserData {
+  id: number;
+  username: string;
+  email: string;
+  role?: string;
 }
 
-.profile-dropdown span {
-  text-transform: lowercase;
-}
+export default function ProfileDropdown() {
+  const [user, setUser] = useState<UserData | null>(null);
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
-.profile-dropdown a {
-  text-transform: lowercase;
+  // ✅ Fetch real user data from DB
+  useEffect(() => {
+    const stored = localStorage.getItem("userData");
+    if (!stored) return;
+
+    const parsed = JSON.parse(stored);
+
+    fetch(`/api/auth/get-profile?id=${parsed.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.user) {
+          setUser({
+            id: data.user.id,
+            username: data.user.username || "User",
+            email: data.user.email,
+            role: data.user.role || "Member",
+          });
+        } else {
+          setUser(parsed);
+        }
+      })
+      .catch(() => setUser(parsed));
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("userData");
+    localStorage.removeItem("userEmail");
+    router.push("/user/login");
+  };
+
+  const initials = user?.username ? user.username.charAt(0).toUpperCase() : "U";
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      {/* Avatar Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.97 }}
+        className="flex items-center gap-3 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/40 hover:shadow-[0_0_25px_rgba(0,0,0,0.15)] transition-all"
+      >
+        <motion.div
+          whileHover={{ rotate: 8 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--accent)] text-white font-bold text-base shadow-inner"
+        >
+          {initials}
+        </motion.div>
+
+        <div className="flex flex-col text-left leading-tight pr-1">
+          <span className="text-base font-semibold text-gray-900">
+            {user?.username}
+          </span>
+          <span className="text-xs text-[var(--accent-hover)] font-medium">
+            {user?.role?.toLowerCase()}
+          </span>
+        </div>
+      </motion.button>
+
+      {/* Dropdown Menu */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.9 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="absolute right-0 mt-4 w-72 bg-white/95 backdrop-blur-2xl shadow-2xl border border-white/40 rounded-2xl p-4 z-50"
+          >
+            {/* User Info Header */}
+            <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gray-200">
+              <div className="w-12 h-12 rounded-full bg-[var(--accent)] text-white flex items-center justify-center text-lg font-bold shadow-md">
+                {initials}
+              </div>
+              <div>
+                <p className="text-base font-semibold text-gray-900">
+                  {user?.username}
+                </p>
+                <p className="text-sm text-gray-500 truncate">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+
+            {/* Menu List */}
+            <ul className="space-y-1 text-sm">
+              <motion.li whileHover={{ x: 5 }}>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--accent)]/10 hover:text-[var(--accent)] transition-all font-medium"
+                  onClick={() => setOpen(false)}
+                >
+                  <User className="w-5 h-5 text-[var(--accent)]" />
+                  Profile
+                </Link>
+              </motion.li>
+
+              <motion.li whileHover={{ x: 5 }}>
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--accent)]/10 hover:text-[var(--accent)] transition-all font-medium"
+                  onClick={() => setOpen(false)}
+                >
+                  <Settings className="w-5 h-5 text-[var(--accent)]" />
+                  Settings
+                </Link>
+              </motion.li>
+
+              <motion.li whileHover={{ x: 5 }}>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg hover:bg-red-100 transition-all text-red-600 font-medium"
+                >
+                  <LogOut className="w-5 h-5" /> Logout
+                </button>
+              </motion.li>
+            </ul>
+
+            {/* Glow Accent Bar */}
+            <div className="absolute bottom-0 left-0 w-full h-1 rounded-b-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)]"></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }

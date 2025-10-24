@@ -5,11 +5,11 @@ import bcrypt from "bcryptjs";
 /* ---------------------- DATABASE CONNECTION ---------------------- */
 async function connectDB() {
   const db = await mysql.createConnection({
-    host: "127.0.0.1",
-    user: "root",
-    password: "prathyu8281",
-    database: "serviceapp",
-    port: 3307,
+     host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
   });
   return db;
 }

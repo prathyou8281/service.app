@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Nav({
@@ -44,7 +44,7 @@ export default function Nav({
       style={{ backgroundColor: "var(--accent)" }}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8 relative">
-        {/* Logo */}
+        {/* 🔹 Logo */}
         <Link href="/" className="flex items-center gap-3">
           <Image
             src={logoSrc}
@@ -56,7 +56,7 @@ export default function Nav({
           />
         </Link>
 
-        {/* Desktop nav links */}
+        {/* 🔹 Desktop nav links */}
         <div className="mx-auto hidden md:flex gap-8">
           {navItems.map((item) => (
             <Link
@@ -69,8 +69,20 @@ export default function Nav({
           ))}
         </div>
 
-        {/* Right side: Login/Register */}
+        {/* 🔹 Right side buttons */}
         <div className="ml-auto flex items-center gap-4">
+          {/* Business Profile link (visible always for logged in / main site) */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="hidden md:flex items-center gap-2 cursor-pointer bg-white/10 px-4 py-2 rounded-xl text-sm font-semibold text-white hover:bg-white/20 transition-colors"
+            onClick={() => router.push("/business-profile")}
+          >
+            <Briefcase className="w-4 h-4" />
+            <span>Business Profile</span>
+          </motion.div>
+
+          {/* Auth Buttons */}
           {!hideAuthButtons && (
             <div className="hidden md:flex gap-3">
               <motion.button
@@ -93,7 +105,7 @@ export default function Nav({
             </div>
           )}
 
-          {/* Mobile menu button */}
+          {/* 🔹 Mobile Menu Button */}
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -105,7 +117,7 @@ export default function Nav({
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* 🔹 Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white shadow-md border-t">
           <div className="flex flex-col gap-3 p-4">
@@ -119,6 +131,16 @@ export default function Nav({
                 {item.label}
               </Link>
             ))}
+
+            {/* Mobile Business Profile link */}
+            <Link
+              href="/business-profile"
+              className="flex items-center gap-2 font-medium text-[var(--foreground)] py-2 px-3 rounded hover:bg-[var(--accent-hover)]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Briefcase className="w-4 h-4" />
+              Business Profile
+            </Link>
 
             {!hideAuthButtons && (
               <>

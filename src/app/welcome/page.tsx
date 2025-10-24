@@ -28,7 +28,7 @@ export default function Home() {
   const handleLogout = () => {
     localStorage.removeItem("userData");
     localStorage.removeItem("userEmail");
-    router.push("/user/login");
+    router.push("/");
   };
 
   return (

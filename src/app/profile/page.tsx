@@ -11,10 +11,10 @@ import {
   Shield,
   Calendar,
   Check,
+  Briefcase,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// ✅ Define user data structure
 interface UserData {
   id: number;
   username: string;
@@ -35,7 +35,6 @@ export default function ProfilePage() {
   const [tempValue, setTempValue] = useState<string>("");
   const router = useRouter();
 
-  // ✅ Fetch user data
   useEffect(() => {
     const stored = localStorage.getItem("userData");
     if (!stored) {
@@ -49,16 +48,13 @@ export default function ProfilePage() {
       .then((data) => {
         if (data.success) {
           setUser(data.user);
-        } else {
-          console.error("Failed to fetch user data");
         }
       })
       .catch((err) => console.error("Profile fetch error:", err));
   }, [router]);
 
-  const initials = user?.username ? user.username[0].toUpperCase() : "G";
+  const initials = user?.username ? user.username[0].toUpperCase() : "U";
 
-  // ✅ Begin editing a field
   const startEditing = (key: keyof UserData) => {
     if (!user) return;
     setEditingField(key);
@@ -68,10 +64,8 @@ export default function ProfilePage() {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) =>
     setTempValue(e.target.value);
 
-  // ✅ Save field changes (sends full profile data)
   const saveField = async (key: keyof UserData) => {
     if (!user) return;
-
     const updatedUser = { ...user, [key]: tempValue };
     setUser(updatedUser);
     setEditingField(null);
@@ -85,7 +79,6 @@ export default function ProfilePage() {
           username: updatedUser.username,
           phone: updatedUser.phone,
           address: updatedUser.address,
-          role: updatedUser.role,
           shopName: updatedUser.shopName,
           shopLocation: updatedUser.shopLocation,
           skill: updatedUser.skill,
@@ -100,8 +93,8 @@ export default function ProfilePage() {
         alert("❌ " + data.message);
       }
     } catch (err) {
-      console.error("🚨 Profile update error:", err);
-      alert("❌ Failed to update profile field.");
+      console.error("Profile update error:", err);
+      alert("❌ Failed to update profile.");
     }
   };
 
@@ -112,81 +105,78 @@ export default function ProfilePage() {
 
   if (!user)
     return (
-      <div className="flex items-center justify-center min-h-screen text-white text-lg">
+      <div className="flex items-center justify-center min-h-screen text-[var(--foreground)] text-lg">
         Loading your profile...
       </div>
     );
 
-  // 🧠 Define editable fields dynamically based on role
+  // ✨ Field configuration
   const commonFields = [
-    { icon: <User className="h-5 w-5 text-pink-400" />, label: "Full Name", key: "username" as const },
-    { icon: <Mail className="h-5 w-5 text-blue-400" />, label: "Email", key: "email" as const },
-    { icon: <Phone className="h-5 w-5 text-green-400" />, label: "Phone", key: "phone" as const },
-    { icon: <MapPin className="h-5 w-5 text-yellow-400" />, label: "Address", key: "address" as const },
-    { icon: <Shield className="h-5 w-5 text-indigo-400" />, label: "Role", key: "role" as const },
-    { icon: <Calendar className="h-5 w-5 text-purple-400" />, label: "Joined", key: "joined" as const },
+    { icon: <User className="h-5 w-5 text-[var(--accent)]" />, label: "Full Name", key: "username" as const },
+    { icon: <Mail className="h-5 w-5 text-[var(--accent)]" />, label: "Email", key: "email" as const },
+    { icon: <Phone className="h-5 w-5 text-[var(--accent)]" />, label: "Phone", key: "phone" as const },
+    { icon: <MapPin className="h-5 w-5 text-[var(--accent)]" />, label: "Address", key: "address" as const },
+    { icon: <Shield className="h-5 w-5 text-[var(--accent)]" />, label: "Role", key: "role" as const },
+    { icon: <Calendar className="h-5 w-5 text-[var(--accent)]" />, label: "Joined", key: "joined" as const },
   ];
 
   const vendorFields =
     user.role === "Vendor"
       ? [
-          { icon: <User className="h-5 w-5 text-yellow-300" />, label: "Shop Name", key: "shopName" as const },
-          { icon: <MapPin className="h-5 w-5 text-pink-300" />, label: "Shop Location", key: "shopLocation" as const },
+          { icon: <Briefcase className="h-5 w-5 text-[var(--accent)]" />, label: "Shop Name", key: "shopName" as const },
+          { icon: <MapPin className="h-5 w-5 text-[var(--accent)]" />, label: "Shop Location", key: "shopLocation" as const },
         ]
       : [];
 
   const technicianFields =
     user.role === "Technician"
       ? [
-          { icon: <User className="h-5 w-5 text-cyan-300" />, label: "Skill", key: "skill" as const },
-          { icon: <Calendar className="h-5 w-5 text-orange-300" />, label: "Experience", key: "experience" as const },
+          { icon: <User className="h-5 w-5 text-[var(--accent)]" />, label: "Skill", key: "skill" as const },
+          { icon: <Calendar className="h-5 w-5 text-[var(--accent)]" />, label: "Experience", key: "experience" as const },
         ]
       : [];
 
   const allFields = [...commonFields, ...vendorFields, ...technicianFields];
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 text-white">
-      {/* 🔹 Header Section */}
-      <div className="relative bg-black/30 backdrop-blur-md p-10 flex flex-col items-center border-b border-white/10 shadow-xl">
-        <div className="relative w-32 h-32">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 animate-spin-slow blur-md opacity-70"></div>
-          <div className="relative w-32 h-32 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-400 to-indigo-400 border-4 border-white shadow-lg text-4xl font-bold">
+    <div className="min-h-screen w-full bg-[var(--background)] text-[var(--foreground)] transition-all">
+      {/* 🔹 Top Header */}
+      <header className="relative flex flex-col items-center text-center py-12 bg-gradient-to-br from-[var(--accent)]/40 to-[var(--accent-hover)]/20 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <div className="relative w-32 h-32 mb-5">
+          <div className="absolute inset-0 rounded-full bg-[var(--accent)] blur-lg opacity-70 animate-pulse"></div>
+          <div className="relative flex items-center justify-center w-32 h-32 rounded-full bg-[var(--accent)] border-4 border-white shadow-lg text-4xl font-bold">
             {initials}
           </div>
         </div>
-
-        <h1 className="mt-5 text-3xl font-bold tracking-wide">
+        <h1 className="text-3xl font-extrabold tracking-tight">
           {user.username}
         </h1>
         <p className="text-gray-200 mt-1">{user.email}</p>
 
         <div className="flex gap-4 mt-6">
           <button
-            onClick={() =>
-              alert("💡 Click any editable field below to change it.")
-            }
-            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-5 py-2 rounded-lg shadow transition-all"
+            onClick={() => alert("💡 Click on any editable field below to modify.")}
+            className="flex items-center gap-2 px-5 py-2 bg-[var(--accent)]/20 border border-[var(--accent)]/40 hover:bg-[var(--accent)]/30 rounded-lg text-sm font-medium transition-all"
           >
             <Edit className="h-4 w-4" /> Edit Profile
           </button>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-500 px-5 py-2 rounded-lg shadow transition-all"
+            className="flex items-center gap-2 px-5 py-2 bg-red-500/80 hover:bg-red-600 rounded-lg text-sm font-medium transition-all"
           >
             <LogOut className="h-4 w-4" /> Logout
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* 🔹 Profile Info Section */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-10 mx-6 sm:mx-16 mt-10 shadow-xl">
-        <h2 className="text-2xl font-semibold mb-8 border-b border-white/20 pb-2">
+      {/* 🔹 Profile Info Card */}
+      <section className="max-w-4xl mx-auto mt-10 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-10 shadow-xl">
+        <h2 className="text-2xl font-semibold mb-8 border-b border-white/20 pb-3 text-center">
           Profile Information
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-200 text-base">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm md:text-base">
           {allFields.map((item) => (
             <div
               key={item.key}
@@ -199,12 +189,12 @@ export default function ProfilePage() {
                     type="text"
                     value={tempValue}
                     onChange={handleInputChange}
-                    className="bg-white/10 text-white border border-white/20 rounded px-2 py-1 flex-1 outline-none focus:border-white/50"
+                    className="flex-1 px-3 py-1.5 rounded-md bg-white/10 border border-white/30 text-white focus:ring-2 focus:ring-[var(--accent)] outline-none transition"
                     autoFocus
                   />
                   <button
                     onClick={() => saveField(item.key)}
-                    className="bg-green-500 hover:bg-green-600 text-white rounded-full p-1"
+                    className="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-md transition"
                   >
                     <Check className="h-4 w-4" />
                   </button>
@@ -218,17 +208,14 @@ export default function ProfilePage() {
                   }
                   className={`flex-1 cursor-pointer ${
                     ["email", "role", "joined"].includes(item.key)
-                      ? "cursor-default"
-                      : "hover:text-white/90"
+                      ? "cursor-default text-gray-400"
+                      : "hover:text-white"
                   }`}
-                  title={
-                    ["email", "role", "joined"].includes(item.key)
-                      ? ""
-                      : "Click to edit"
-                  }
                 >
-                  <strong>{item.label}:</strong>{" "}
-                  <span className="text-gray-300">
+                  <span className="block text-sm opacity-70">
+                    {item.label}
+                  </span>
+                  <span className="font-semibold text-[var(--foreground)]">
                     {user[item.key] || "—"}
                   </span>
                 </div>
@@ -236,26 +223,12 @@ export default function ProfilePage() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* 🔹 Footer */}
-      <footer className="text-center text-sm text-gray-300 mt-16 pb-8">
-        © {new Date().getFullYear()} ServiceApp | Designed with ❤️ in Kannur
+      <footer className="text-center text-sm text-gray-400 mt-16 pb-8">
+        © {new Date().getFullYear()} <span className="text-[var(--accent)] font-medium">ServiceApp</span> | Designed with ❤️ in Kannur
       </footer>
-
-      <style jsx>{`
-        @keyframes spin-slow {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-        .animate-spin-slow {
-          animation: spin-slow 6s linear infinite;
-        }
-      `}</style>
     </div>
   );
 }

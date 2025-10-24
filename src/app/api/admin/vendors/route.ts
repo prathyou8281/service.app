@@ -5,13 +5,17 @@ import bcrypt from "bcryptjs";
 // ✅ Connect DB
 async function connectDB() {
   return mysql.createConnection({
-    host: "127.0.0.1",
-    user: "root",
-    password: "prathyu8281",
-    database: "serviceapp",
-    port: 3307,
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
   });
 }
+
+
+
+ 
 
 /* ---------------------- GET ALL VENDORS ---------------------- */
 export async function GET() {
