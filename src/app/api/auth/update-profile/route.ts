@@ -7,24 +7,25 @@ export async function POST(req: Request) {
   try {
     const {
       id,
-      username,
+      name,
       phone,
+      profile_photo,
       address,
-      role,
-      shopName,
-      shopLocation,
-      skill,
-      experience,
+      city,
+      state,
+      country,
+      pin_code,
     } = await req.json();
 
-    if (!id) {
+    // ✅ Validate required data
+    if (!id || isNaN(Number(id))) {
       return NextResponse.json(
-        { success: false, message: "❌ Missing user ID." },
+        { success: false, message: "❌ Invalid or missing user ID." },
         { status: 400 }
       );
     }
 
-    // 🧠 Connect to your MySQL DB
+    // ✅ Connect to MySQL
     db = await mysql.createConnection({
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),
@@ -33,43 +34,90 @@ export async function POST(req: Request) {
       database: process.env.DB_NAME,
     });
 
-    // Base query
-    let query = "UPDATE users SET username = ?, phone = ?, address = ?";
-    const values: (string | number | null)[] = [
-      username || null,
-      phone || null,
-      address || null,
-    ];
+    // ✅ Step 1: Update main user info
+    const [userUpdate]: any = await db.execute(
+      `
+      UPDATE users
+      SET 
+        name = ?, 
+        phone = ?, 
+        profile_photo = ?, 
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+      `,
+      [name || null, phone || null, profile_photo || null, id]
+    );
 
-    // Role-specific fields
-    if (role === "Vendor") {
-      query += ", shopName = ?, shopLocation = ?";
-      values.push(shopName || null, shopLocation || null);
-    } else if (role === "Technician") {
-      query += ", skill = ?, experience = ?";
-      values.push(skill || null, experience || null);
-    }
-
-    query += " WHERE id = ?";
-    values.push(id);
-
-    const [result]: any = await db.execute(query, values);
-
-    if (result.affectedRows === 0) {
+    if (userUpdate.affectedRows === 0) {
       return NextResponse.json(
-        { success: false, message: "⚠️ User not found or no changes made." },
+        { success: false, message: "⚠️ User not found." },
         { status: 404 }
       );
     }
 
+    // ✅ Step 2: Handle Address (insert or update)
+    if (address || city || state || country || pin_code) {
+      console.log("📦 Handling address for user:", id);
+
+      const [existing]: any = await db.execute(
+        "SELECT id FROM users_addresses WHERE user_id = ? LIMIT 1",
+        [id]
+      );
+
+      if (existing.length > 0) {
+        // 🔁 Update existing record
+        await db.execute(
+          `
+          UPDATE users_addresses
+          SET 
+            address = ?, 
+            city = ?, 
+            state = ?, 
+            country = ?, 
+            pin_code = ?, 
+            updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?
+          `,
+          [
+            address || null,
+            city || null,
+            state || null,
+            country || null,
+            pin_code || null,
+            id,
+          ]
+        );
+      } else {
+        // 🆕 Insert new address row
+        await db.execute(
+          `
+          INSERT INTO users_addresses
+          (user_id, address, city, state, country, pin_code, status, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, 'active', NOW(), NOW())
+          `,
+          [
+            Number(id),
+            address || null,
+            city || null,
+            state || null,
+            country || null,
+            pin_code || null,
+          ]
+        );
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: "✅ Profile updated successfully!",
+      message: "✅ Profile and address updated successfully!",
     });
   } catch (error: any) {
-    console.error("🚨 Update Profile Error:", error.message || error);
+    console.error("🚨 Update Profile Error:", error);
     return NextResponse.json(
-      { success: false, message: "Server error while updating profile." },
+      {
+        success: false,
+        message: "🚨 Server error while updating profile: " + error.message,
+      },
       { status: 500 }
     );
   } finally {
