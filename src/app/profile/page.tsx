@@ -58,7 +58,7 @@ export default function ProfilePage() {
   });
   const router = useRouter();
 
-  // ✅ Load user + fetch from DB
+  // ✅ Fetch user
   useEffect(() => {
     const stored = localStorage.getItem("userData");
     if (!stored) {
@@ -85,7 +85,6 @@ export default function ProfilePage() {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) =>
     setTempValue(e.target.value);
 
-  // ✅ Save basic info to DB
   const saveField = async (key: keyof UserData) => {
     if (!user) return;
     const updatedUser = { ...user, [key]: tempValue };
@@ -111,7 +110,7 @@ export default function ProfilePage() {
       if (data.success)
         localStorage.setItem("userData", JSON.stringify(updatedUser));
       else alert("❌ " + data.message);
-    } catch (err) {
+    } catch {
       alert("❌ Failed to update profile.");
     }
   };
@@ -121,7 +120,6 @@ export default function ProfilePage() {
     router.push("/user/login");
   };
 
-  // ✅ Add address
   const handleAddAddress = async () => {
     if (!user) return;
     const res = await fetch("/api/auth/addresses", {
@@ -131,7 +129,6 @@ export default function ProfilePage() {
     });
     const data = await res.json();
     if (data.success) {
-      alert("✅ Address added successfully!");
       setShowAddModal(false);
       setNewAddress({
         address: "",
@@ -140,7 +137,6 @@ export default function ProfilePage() {
         country: "",
         pin_code: "",
       });
-      // Reload profile
       const refreshed = await fetch(`/api/auth/get-profile?id=${user.id}`).then(
         (r) => r.json()
       );
@@ -155,11 +151,9 @@ export default function ProfilePage() {
       </div>
     );
 
-  // 🧠 Organized bento sections
   const sections = [
     {
       title: "Personal Details",
-      color: "from-indigo-500/20 to-indigo-700/10",
       fields: [
         { icon: <User />, label: "Full Name", key: "username" },
         { icon: <Mail />, label: "Email", key: "email" },
@@ -168,12 +162,10 @@ export default function ProfilePage() {
     },
     {
       title: "Address Info",
-      color: "from-green-500/20 to-green-700/10",
       custom: true,
     },
     {
       title: "Account Details",
-      color: "from-purple-500/20 to-purple-700/10",
       fields: [
         { icon: <Shield />, label: "Role", key: "role" },
         { icon: <Calendar />, label: "Joined", key: "joined" },
@@ -183,7 +175,6 @@ export default function ProfilePage() {
       ? [
           {
             title: "Vendor Info",
-            color: "from-amber-500/20 to-amber-700/10",
             fields: [
               { icon: <Briefcase />, label: "Shop Name", key: "shopName" },
               { icon: <MapPin />, label: "Shop Location", key: "shopLocation" },
@@ -195,7 +186,6 @@ export default function ProfilePage() {
       ? [
           {
             title: "Technician Info",
-            color: "from-cyan-500/20 to-cyan-700/10",
             fields: [
               { icon: <User />, label: "Skill", key: "skill" },
               { icon: <Calendar />, label: "Experience", key: "experience" },
@@ -206,27 +196,28 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-all">
       {/* HEADER */}
-      <header className="text-center py-16 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white shadow-lg">
+      <header className="text-center py-16 bg-[var(--accent)] text-white shadow-md">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center text-4xl font-bold border-4 border-white shadow-xl">
+          <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center text-4xl font-bold border-4 border-white shadow-xl">
             {initials}
           </div>
-          <h1 className="text-3xl font-extrabold">{user.username}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            {user.username}
+          </h1>
           <p className="text-white/80">{user.email}</p>
+
           <div className="flex justify-center gap-4 mt-8">
             <button
-              onClick={() =>
-                alert("💡 Click any field below to edit directly.")
-              }
-              className="flex items-center gap-2 px-6 py-2 rounded-xl bg-white/20 hover:bg-white/30 border border-white/30 transition-all"
+              onClick={() => alert("💡 Click any field below to edit directly.")}
+              className="flex items-center gap-2 px-6 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
             >
-              <Edit className="h-4 w-4" /> Edit Mode
+              <Edit className="h-4 w-4" /> Edit
             </button>
             <button
               onClick={handleLogout}
@@ -238,7 +229,7 @@ export default function ProfilePage() {
         </motion.div>
       </header>
 
-      {/* BENTO GRID */}
+      {/* GRID */}
       <motion.section
         className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-6 py-16"
         initial={{ opacity: 0 }}
@@ -249,9 +240,9 @@ export default function ProfilePage() {
           <motion.div
             key={i}
             whileHover={{ scale: 1.02 }}
-            className={`p-6 rounded-2xl bg-gradient-to-br ${section.color} backdrop-blur-xl border border-white/10 shadow-lg hover:shadow-2xl transition-all`}
+            className="p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-sm hover:shadow-lg transition-all"
           >
-            <h3 className="text-lg font-semibold mb-4 text-[var(--accent)]">
+            <h3 className="text-lg font-semibold mb-4 text-[var(--accent)] uppercase tracking-wide">
               {section.title}
             </h3>
 
@@ -262,27 +253,29 @@ export default function ProfilePage() {
                     {user.addresses.map((addr) => (
                       <div
                         key={addr.id}
-                        className="border border-white/20 rounded-xl p-4 bg-white/10 hover:bg-white/20 transition"
+                        className="border border-[var(--border)] rounded-xl p-4 bg-[var(--muted)]/10 hover:bg-[var(--muted)]/20 transition"
                       >
-                        <p className="font-semibold text-white">
+                        <p className="font-semibold text-[var(--foreground)]">
                           {addr.address}
                         </p>
-                        <p className="text-sm text-gray-300">
-                          {addr.city}, {addr.state}, {addr.country} -{" "}
+                        <p className="text-sm opacity-70">
+                          {addr.city}, {addr.state}, {addr.country} –{" "}
                           {addr.pin_code}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-400 text-sm">No addresses added yet.</p>
+                  <p className="text-sm opacity-60">
+                    No addresses added yet.
+                  </p>
                 )}
 
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="w-full mt-5 border-2 border-dashed border-green-400 rounded-xl py-3 text-green-400 hover:bg-green-400/10 transition flex items-center justify-center gap-2"
+                  className="w-full mt-5 border-2 border-dashed border-[var(--accent)]/50 rounded-xl py-3 text-[var(--accent)] hover:bg-[var(--accent)]/10 transition flex items-center justify-center gap-2 font-medium"
                 >
-                  <Plus className="w-5 h-5" /> Add New Address
+                  <Plus className="w-5 h-5" /> Add Address
                 </button>
               </>
             ) : (
@@ -295,12 +288,12 @@ export default function ProfilePage() {
                         <input
                           value={tempValue}
                           onChange={handleInputChange}
-                          className="flex-1 px-3 py-1 rounded-lg bg-white/20 border border-white/30 text-white focus:ring-2 focus:ring-[var(--accent)] outline-none"
+                          className="flex-1 px-3 py-1 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)] text-[var(--foreground)] focus:ring-2 focus:ring-[var(--accent)] outline-none"
                           autoFocus
                         />
                         <button
                           onClick={() => saveField(item.key as keyof UserData)}
-                          className="bg-green-500 hover:bg-green-600 p-1.5 rounded-lg text-white"
+                          className="bg-[var(--accent)] hover:opacity-90 p-1.5 rounded-lg text-white"
                         >
                           <Check className="h-4 w-4" />
                         </button>
@@ -315,11 +308,11 @@ export default function ProfilePage() {
                         className={`flex-1 cursor-pointer ${
                           ["email", "role", "joined"].includes(item.key)
                             ? "cursor-default opacity-60"
-                            : "hover:text-white"
+                            : "hover:text-[var(--accent)]"
                         }`}
                       >
                         <p className="text-sm opacity-60">{item.label}</p>
-                        <p className="font-semibold">
+                        <p className="font-semibold truncate">
                           {user[item.key as keyof UserData] || "—"}
                         </p>
                       </div>
@@ -340,17 +333,17 @@ export default function ProfilePage() {
           animate={{ opacity: 1 }}
         >
           <motion.div
-            className="bg-white text-black p-6 rounded-2xl w-full max-w-md shadow-2xl relative"
+            className="bg-[var(--card)] text-[var(--foreground)] p-6 rounded-2xl w-full max-w-md shadow-2xl relative border border-[var(--accent)]/20"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
           >
             <button
               onClick={() => setShowAddModal(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-black"
+              className="absolute top-3 right-3 text-[var(--muted-foreground)] hover:text-[var(--accent)]"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-xl font-semibold mb-4 text-center">
+            <h2 className="text-xl font-semibold mb-4 text-center text-[var(--accent)]">
               Add New Address
             </h2>
             {["address", "city", "state", "country", "pin_code"].map((key) => (
@@ -361,19 +354,19 @@ export default function ProfilePage() {
                 onChange={(e) =>
                   setNewAddress({ ...newAddress, [key]: e.target.value })
                 }
-                className="w-full border rounded-lg p-2 mb-3"
+                className="w-full border border-[var(--border)] rounded-lg p-2 mb-3 bg-[var(--muted)]/10 text-[var(--foreground)] focus:ring-2 focus:ring-[var(--accent)] outline-none"
               />
             ))}
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 mt-4">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 bg-gray-300 rounded-lg"
+                className="px-4 py-2 bg-[var(--muted)]/20 text-[var(--foreground)] rounded-lg hover:bg-[var(--muted)]/30"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddAddress}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg"
+                className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-[var(--accent-hover)]"
               >
                 Save
               </button>

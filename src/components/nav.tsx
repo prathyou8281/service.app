@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { Menu, X, Briefcase } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, Store } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Nav({
@@ -17,10 +17,16 @@ export default function Nav({
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // ✅ Check login status
+  useEffect(() => {
+    const userEmail = localStorage.getItem("userEmail");
+    if (userEmail) setIsLoggedIn(true);
+  }, []);
+
+  // ✅ Pages where login/register buttons are hidden
   const hideAuthButtons = [
-    "/user/login",
-    "/user/register",
     "/vendors",
     "/requests",
     "/orders",
@@ -30,6 +36,10 @@ export default function Nav({
     "/vendor/dashboard",
     "/technician/dashboard",
   ].includes(pathname);
+
+  // ✅ Show “Become a Vendor” only on specific pages
+  const showVendorButton =
+    pathname === "/" || pathname === "/login" || pathname === "/register";
 
   const navItems = [
     { label: "Home", href: "/" },
@@ -71,19 +81,21 @@ export default function Nav({
 
         {/* 🔹 Right side buttons */}
         <div className="ml-auto flex items-center gap-4">
-          {/* Business Profile link (visible always for logged in / main site) */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:flex items-center gap-2 cursor-pointer bg-white/10 px-4 py-2 rounded-xl text-sm font-semibold text-white hover:bg-white/20 transition-colors"
-            onClick={() => router.push("/business-profile")}
-          >
-            <Briefcase className="w-4 h-4" />
-            <span>Business Profile</span>
-          </motion.div>
+          {/* ✅ Become a Vendor — Only on Home/Login/Register pages */}
+          {showVendorButton && (
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="hidden md:flex items-center gap-2 cursor-pointer bg-white/10 px-4 py-2 rounded-xl text-sm font-semibold text-white hover:bg-white/20 transition-colors"
+              onClick={() => router.push("/vendor/register")}
+            >
+              <Store className="w-4 h-4" />
+              <span>Become a Vendor</span>
+            </motion.div>
+          )}
 
-          {/* Auth Buttons */}
-          {!hideAuthButtons && (
+          {/* ✅ Auth Buttons — hidden if logged in */}
+          {!hideAuthButtons && !isLoggedIn && (
             <div className="hidden md:flex gap-3">
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -132,17 +144,20 @@ export default function Nav({
               </Link>
             ))}
 
-            {/* Mobile Business Profile link */}
-            <Link
-              href="/business-profile"
-              className="flex items-center gap-2 font-medium text-[var(--foreground)] py-2 px-3 rounded hover:bg-[var(--accent-hover)]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Briefcase className="w-4 h-4" />
-              Business Profile
-            </Link>
+            {/* ✅ Mobile Become a Vendor */}
+            {showVendorButton && (
+              <Link
+                href="/vendor/register"
+                className="flex items-center gap-2 font-medium text-[var(--foreground)] py-2 px-3 rounded hover:bg-[var(--accent-hover)]"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Store className="w-4 h-4" />
+                Become a Vendor
+              </Link>
+            )}
 
-            {!hideAuthButtons && (
+            {/* ✅ Hide auth buttons if logged in */}
+            {!hideAuthButtons && !isLoggedIn && (
               <>
                 <Link
                   href="/login"
