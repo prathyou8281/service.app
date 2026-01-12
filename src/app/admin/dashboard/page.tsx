@@ -19,6 +19,9 @@ import {
 import { motion } from "framer-motion";
 import ProfileDropdown from "@/components/ProfileDropdown/ProfileDropdown";
 
+// Backend API base URL
+const API_BASE_URL = "http://localhost:4000/api";
+
 // Fetch helper
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -29,7 +32,7 @@ type Column = { key: string; label: string };
 export default function AdminDashboard() {
   const router = useRouter();
   const params = useSearchParams();
-  const [user, setUser] = useState<{ username: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; email?: string; role: string } | null>(null);
 
   // active page
   const [active, setActive] = useState<
@@ -52,7 +55,7 @@ export default function AdminDashboard() {
   }, [router]);
 
   // Fetch metrics
-  const { data: metricsRes } = useSWR("/api/admin/metrics", fetcher, {
+  const { data: metricsRes } = useSWR(`${API_BASE_URL}/admin/metrics`, fetcher, {
     refreshInterval: 10000,
   });
   const metrics: Metrics | null = metricsRes?.success ? metricsRes.data : null;
@@ -103,7 +106,7 @@ export default function AdminDashboard() {
         <header className="flex justify-between items-center mb-10">
           <h1 className="text-3xl font-extrabold tracking-wide">{active}</h1>
           <div className="flex items-center gap-4">
-            <ProfileDropdown />
+            <ProfileDropdown user={user ? { username: user.username, email: user.email || '', role: user.role } : null} />
             <button
               onClick={() => {
                 localStorage.removeItem("userData");
@@ -238,7 +241,7 @@ function EntityTable({
   columns: Column[];
   showAddButton?: boolean;
 }) {
-  const { data, mutate } = useSWR(`/api/admin/${entity}`, (u) => fetch(u).then((r) => r.json()));
+  const { data, mutate } = useSWR(`${API_BASE_URL}/admin/${entity}`, (u: string) => fetch(u).then((r) => r.json()));
   const rows: any[] = data?.success ? data.data : [];
   const [showModal, setShowModal] = useState(false);
 
@@ -262,7 +265,7 @@ function EntityTable({
 
   // SAVE (edit)
   const onSave = async (id: number, updates: any) => {
-    const res = await fetch(`/api/admin/${entity}`, {
+    const res = await fetch(`${API_BASE_URL}/admin/${entity}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, ...updates }),
@@ -273,7 +276,7 @@ function EntityTable({
   // DELETE
   const onDelete = async (id: number) => {
     if (confirm("⚠️ Are you sure you want to delete this record?")) {
-      const res = await fetch(`/api/admin/${entity}?id=${id}`, { method: "DELETE" }).then((r) =>
+      const res = await fetch(`${API_BASE_URL}/admin/${entity}?id=${id}`, { method: "DELETE" }).then((r) =>
         r.json()
       );
       if (res.success) mutate();
@@ -282,7 +285,7 @@ function EntityTable({
 
   // ADD
   const onAdd = async () => {
-    const res = await fetch(`/api/admin/${entity}`, {
+    const res = await fetch(`${API_BASE_URL}/admin/${entity}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Laptop,
   Monitor,
@@ -24,149 +25,182 @@ import {
 const services = [
   {
     title: "Refurbished Laptops",
-    description: "Certified, tested & budget-friendly with warranty.",
+    description: "Certified laptops with warranty at affordable prices.",
     icon: Laptop,
-    href: "/services/refurbished-laptops",
+    slug: "refurbished-laptops",
   },
   {
     title: "New Laptops",
-    description: "Latest models with full manufacturer warranty.",
+    description: "Latest branded laptops with full manufacturer warranty.",
     icon: Laptop,
-    href: "/services/new-laptops",
+    slug: "new-laptops",
   },
   {
     title: "Custom Gaming PCs",
-    description: "Built for power — RGB, high FPS & cooling perfection.",
+    description: "High-performance gaming builds with RGB & cooling.",
     icon: Monitor,
-    href: "/services/custom-gaming-pcs",
+    slug: "custom-gaming-pcs",
   },
   {
-    title: "Laptop & PC Service",
-    description: "Screen, keyboard, battery, motherboard & more.",
+    title: "Laptop & PC Repair",
+    description: "Screen, battery, keyboard & motherboard repairs.",
     icon: Wrench,
-    href: "/services/repair-service",
+    slug: "repair-service",
   },
   {
     title: "Data Recovery",
-    description: "Recover lost data from HDD, SSD, USB & memory cards.",
+    description: "Recover data from HDD, SSD, USB & memory cards.",
     icon: Database,
-    href: "/services/data-recovery",
+    slug: "data-recovery",
   },
   {
     title: "Software & OS Installation",
-    description: "Windows, drivers, antivirus & optimization setup.",
+    description: "Windows, drivers, antivirus & optimization services.",
     icon: HardDrive,
-    href: "/services/software-os-installation",
+    slug: "software-os-installation",
   },
   {
     title: "Networking & Wi-Fi Setup",
-    description: "Home/office network cabling, routers & connections.",
+    description: "Home & office networking with secure configuration.",
     icon: Router,
-    href: "/services/networking",
+    slug: "networking",
   },
   {
     title: "CCTV Installation",
-    description: "Indoor/outdoor camera setup with mobile monitoring.",
+    description: "Indoor & outdoor CCTV with mobile access.",
     icon: Camera,
-    href: "/services/cctv-installation",
+    slug: "cctv-installation",
   },
   {
-    title: "Printer Service & Toner Refill",
-    description: "Laser/inkjet repairs, refills & cartridge replacements.",
+    title: "Printer Service",
+    description: "Printer repair, toner refill & cartridge replacement.",
     icon: Printer,
-    href: "/services/printer-service",
+    slug: "printer-service",
   },
   {
     title: "Accessories & Upgrades",
-    description: "RAM, SSDs, GPUs, headsets, keyboards & more.",
+    description: "RAM, SSD, GPU & performance upgrades.",
     icon: Package,
-    href: "/services/accessories-upgrades",
+    slug: "accessories-upgrades",
   },
   {
-    title: "UPS & Inverters (Servosonic)",
-    description: "Reliable power backup solutions for home & office.",
+    title: "UPS & Inverters",
+    description: "Reliable power backup solutions for homes & offices.",
     icon: Battery,
-    href: "/services/ups-inverter-servosonic",
+    slug: "ups-inverter",
   },
   {
-    title: "AMC (Annual Maintenance)",
-    description: "Proactive IT support for businesses & institutions.",
+    title: "Annual Maintenance (AMC)",
+    description: "Proactive IT support plans for businesses.",
     icon: ShieldCheck,
-    href: "/services/amc",
+    slug: "amc",
   },
   {
-    title: "Mobile Repair & Accessories",
-    description: "Display, battery, speaker & board-level repairs.",
+    title: "Mobile Repair",
+    description: "Display, battery & board-level mobile repairs.",
     icon: Smartphone,
-    href: "/services/mobile-repair",
+    slug: "mobile-repair",
   },
   {
-    title: "Smart Home & Automation",
-    description: "Smart lights, cameras, voice assistants & control systems.",
+    title: "Smart Home Automation",
+    description: "Smart lights, cameras & automation systems.",
     icon: Home,
-    href: "/services/smart-home",
+    slug: "smart-home",
   },
   {
-    title: "Web Development & IT Solutions",
-    description: "Websites, apps, and digital support for your business.",
+    title: "Web Development & IT",
+    description: "Websites, apps & digital IT solutions.",
     icon: Globe,
-    href: "/services/web-development",
+    slug: "web-development",
   },
   {
     title: "Car Wash & Detailing",
-    description: "Premium car cleaning, polishing, and interior care.",
+    description: "Professional car wash & interior detailing.",
     icon: Car,
-    href: "/services/car-wash",
+    slug: "car-wash",
   },
   {
-    title: "Custom PC Builds for Creators",
-    description: "Editing rigs with RTX GPUs, liquid cooling & silence kits.",
+    title: "Creator PC Builds",
+    description: "Editing rigs for designers & video creators.",
     icon: Cpu,
-    href: "/services/creator-pc-builds",
+    slug: "creator-pc-builds",
   },
 ];
 
 export default function ExploreServices() {
+  const router = useRouter();
+
+  const handleBook = (slug: string) => {
+    const userData = localStorage.getItem("userData");
+
+    if (!userData) {
+      router.push(`/login?redirect=book-service&service=${slug}`);
+      return;
+    }
+
+    router.push(`/book-service?service=${slug}`);
+  };
+
   return (
-    <section className="py-20 px-6 bg-[var(--background)] text-[var(--foreground)] relative overflow-hidden">
-      <div className="max-w-7xl mx-auto text-center relative z-10">
-        <motion.h1
+    <section className="min-h-screen px-6 py-20 bg-[var(--background)] text-[var(--foreground)]">
+      <div className="max-w-7xl mx-auto">
+        {/* HEADER */}
+        <motion.div
           initial={{ opacity: 0, y: -40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-5xl font-extrabold mb-4"
+          className="text-center mb-16"
         >
-          Explore Our{" "}
-          <span className="text-[var(--accent)]">Premium Services</span>
-        </motion.h1>
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
+            Professional Services for{" "}
+            <span className="text-[var(--accent)]">Everyday Needs</span>
+          </h1>
 
-        <p className="text-[var(--foreground)] text-lg max-w-2xl mx-auto mb-14">
-          Everything your tech, home & business needs — all in one place.
-        </p>
+          <p className="mt-4 max-w-3xl mx-auto text-lg text-[var(--secondary)]">
+            From laptop repairs and IT solutions to smart homes and car care —  
+            book trusted services instantly with transparent pricing and expert support.
+          </p>
+        </motion.div>
 
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* SERVICES GRID */}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {services.map((service, idx) => (
-            <Link key={service.href} href={service.href}>
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: idx * 0.05 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
-                className="relative bg-white rounded-3xl p-[2px] shadow-lg hover:shadow-2xl transition-transform group border-2 border-[var(--accent)]"
-              >
-                <div className="bg-[var(--card-bg)] rounded-3xl p-8 h-full text-center group-hover:bg-[var(--card-hover-bg)] transition-all">
-                  <div className="flex justify-center mb-6">
-                    <service.icon className="w-14 h-14 text-[var(--accent)] group-hover:scale-110 transition-transform drop-shadow-lg" />
-                  </div>
-                  <h2 className="text-2xl font-bold mb-3">{service.title}</h2>
-                  <p className="text-[var(--foreground)] text-sm">{service.description}</p>
-                  <div className="mt-6 text-sm font-semibold text-[var(--accent)] group-hover:text-[var(--foreground)]">
-                    View Details →
-                  </div>
-                </div>
-              </motion.div>
-            </Link>
+            <motion.div
+              key={service.slug}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: idx * 0.04 }}
+              viewport={{ once: true }}
+              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-6 shadow-md hover:shadow-xl transition flex flex-col"
+            >
+              {/* ICON */}
+              <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mb-5">
+                <service.icon className="w-7 h-7 text-[var(--accent)]" />
+              </div>
+
+              {/* CONTENT */}
+              <h2 className="text-xl font-bold mb-2">{service.title}</h2>
+              <p className="text-sm text-[var(--secondary)] flex-1">
+                {service.description}
+              </p>
+
+              {/* ACTIONS */}
+              <div className="mt-6 flex gap-3">
+                <Link
+                  href={`/services/${service.slug}`}
+                  className="flex-1 text-center text-sm font-semibold rounded-xl border border-[var(--card-border)] py-2 hover:bg-white/5 transition"
+                >
+                  View Details
+                </Link>
+
+                <button
+                  onClick={() => handleBook(service.slug)}
+                  className="flex-1 text-sm font-semibold rounded-xl bg-[var(--accent)] text-white py-2 hover:opacity-90 transition"
+                >
+                  Book Now
+                </button>
+              </div>
+            </motion.div>
           ))}
         </div>
       </div>

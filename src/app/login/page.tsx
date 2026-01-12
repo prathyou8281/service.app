@@ -3,8 +3,9 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const API_BASE_URL = "http://localhost:4000/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -55,7 +56,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -73,7 +74,7 @@ export default function LoginPage() {
       localStorage.setItem("userData", JSON.stringify(data.user));
 
       // ✅ Redirect based on verified backend role
-      router.push(data.redirect);
+      router.push(data.redirect || "/welcome");
     } catch (err) {
       console.error("Login error:", err);
       setError("⚠️ Server error, please try again later.");
@@ -92,7 +93,7 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="Email or Username"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
@@ -133,21 +134,8 @@ export default function LoginPage() {
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        <button
-          disabled={loading}
-          onClick={() => signIn("google", { callbackUrl: "/welcome" })}
-          className="w-full bg-white text-black font-semibold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
-        >
-          <img
-            src="https://developers.google.com/identity/images/g-logo.png"
-            alt="Google"
-            className="w-5 h-5"
-          />
-          Login with Google
-        </button>
-
         <p className="text-center text-sm mt-6 opacity-80">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link href="/register" className="text-[var(--accent)] hover:underline">
             Register
           </Link>
