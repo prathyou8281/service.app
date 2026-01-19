@@ -15,8 +15,8 @@ export default function LoginPage() {
   const router = useRouter();
 
   // ✅ Auto-redirect only if valid stored user
-  useEffect(() => { 
-    
+  useEffect(() => {
+
     try {
       const storedUser = localStorage.getItem("userData");
       if (!storedUser) return;
@@ -73,6 +73,13 @@ export default function LoginPage() {
 
       // ✅ Save verified user info
       localStorage.setItem("userData", JSON.stringify(data.user));
+      localStorage.setItem("access_token", data.user.access_token);
+
+      // ✅ Set cookie for middleware
+      document.cookie = `userData=${JSON.stringify({
+        username: data.user.name,
+        role: "user",
+      })}; path=/; max-age=86400; SameSite=Lax`;
 
       // ✅ Redirect based on verified backend role
       router.push(data.redirect || "/welcome");
@@ -121,9 +128,8 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className={`btn-primary mt-4 w-full text-center ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+            className={`btn-primary mt-4 w-full text-center ${loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
           >
             {loading ? "Logging in..." : "Login"}
           </button>

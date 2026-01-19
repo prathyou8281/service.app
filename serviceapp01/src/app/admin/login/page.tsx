@@ -25,6 +25,13 @@ export default function AdminLoginPage() {
 
             // Store admin data in localStorage
             localStorage.setItem('admin', JSON.stringify(response.admin));
+            localStorage.setItem('access_token', response.admin.access_token);
+
+            // Set cookie for middleware
+            document.cookie = `userData=${JSON.stringify({
+                username: response.admin.name,
+                role: "admin",
+            })}; path=/; max-age=86400; SameSite=Lax`;
 
             // Redirect to admin dashboard after short delay
             setTimeout(() => {

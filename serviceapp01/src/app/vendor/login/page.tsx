@@ -33,6 +33,7 @@ export default function VendorLoginPage() {
       }
 
       // ✅ STORE LOGIN DATA (THIS FIXES DASHBOARD REDIRECT)
+      localStorage.setItem("access_token", data.vendor.access_token);
       localStorage.setItem(
         "userData",
         JSON.stringify({
@@ -40,6 +41,12 @@ export default function VendorLoginPage() {
           role: "vendor",
         })
       );
+
+      // ✅ SET COOKIE FOR MIDDLEWARE (REQUIRED FOR REDIRECT TO WORK)
+      document.cookie = `userData=${JSON.stringify({
+        username: data.vendor.name,
+        role: "vendor",
+      })}; path=/; max-age=86400; SameSite=Lax`;
 
       // ✅ HARD REDIRECT (NO ROUTER, NO MIDDLEWARE)
       window.location.href = "/vendor/dashboard";

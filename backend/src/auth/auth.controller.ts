@@ -9,15 +9,22 @@ import {
   ForbiddenException,
   BadRequestException,
   InternalServerErrorException,
+  UseGuards,
+  Get,
+  Request,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RolesGuard } from './roles.guard';
+import { Roles } from './roles.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
+  /* ===================== REGISTER ===================== */
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerDto: RegisterDto) {
@@ -28,85 +35,99 @@ export class AuthController {
         message: 'Registration successful',
       };
     } catch (error) {
-      // Return errors in the format { success: false, message: "..." }
       let message = 'Registration failed';
       let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
 
-      if (error.response) {
-        // Handle validation errors from class-validator
-        if (Array.isArray(error.response.message)) {
-          message = error.response.message.join(', ');
-          statusCode = HttpStatus.BAD_REQUEST;
-        } else if (error.response.message) {
-          message = error.response.message;
-          statusCode = error.status || HttpStatus.BAD_REQUEST;
-        }
-      } else if (error.message) {
+      if (error instanceof BadRequestException) {
         message = error.message;
-        // Map exception types to status codes
-        if (error.status === HttpStatus.CONFLICT) {
-          statusCode = HttpStatus.CONFLICT;
-        } else if (error.status === HttpStatus.BAD_REQUEST) {
-          statusCode = HttpStatus.BAD_REQUEST;
-        } else if (error.status === HttpStatus.INTERNAL_SERVER_ERROR) {
-          statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
+        statusCode = HttpStatus.BAD_REQUEST;
       }
 
-      // Throw HttpException with custom response body
       throw new HttpException(
-        {
-          success: false,
-          message: message,
-        },
+        { success: false, message },
         statusCode,
       );
     }
   }
 
-  @Post('admin/login')
+  /* ===================== USER LOGIN ===================== */
+  @Post('login')
   @HttpCode(HttpStatus.OK)
-  async adminLogin(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto) {
     try {
-      const admin = await this.authService.adminLogin(loginDto);
+      const user = await this.authService.login(loginDto);
       return {
+        success: true,
         message: 'Login successful',
-        admin,
+        user,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw new HttpException(
-          {
-            message: error.message || 'Invalid email or password',
-          },
+          { success: false, message: 'Invalid email or password' },
           HttpStatus.UNAUTHORIZED,
         );
       }
 
       if (error instanceof ForbiddenException) {
         throw new HttpException(
-          {
-            message: error.message || 'Account is not active',
-          },
+          { success: false, message: 'Account is not active' },
           HttpStatus.FORBIDDEN,
         );
       }
 
-      if (error instanceof InternalServerErrorException) {
+      throw new HttpException(
+        { success: false, message: 'Login failed' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /* ===================== ADMIN LOGIN ===================== */
+  @Post('admin/login')
+  @HttpCode(HttpStatus.OK)
+  async adminLogin(@Body() loginDto: LoginDto) {
+    try {
+      const admin = await this.authService.adminLogin(loginDto);
+      return {
+        success: true,
+        message: 'Admin login successful',
+        admin,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
         throw new HttpException(
-          {
-            message: error.message || 'Login failed',
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
+          { success: false, message: 'Invalid email or password' },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      if (error instanceof ForbiddenException) {
+        throw new HttpException(
+          { success: false, message: 'Admin account is not active' },
+          HttpStatus.FORBIDDEN,
         );
       }
 
       throw new HttpException(
-        {
-          message: 'Process failed',
-        },
+        { success: false, message: 'Admin login failed' },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  /* ===================== PROFILE ===================== */
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('user')
+  @Get('me')
+  async getProfile(@Request() req) {
+    return this.authService.getUserProfile(req.user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  @Get('admin/me')
+  async getAdminProfile(@Request() req) {
+    return this.authService.getAdminProfile(req.user.userId);
   }
 }
