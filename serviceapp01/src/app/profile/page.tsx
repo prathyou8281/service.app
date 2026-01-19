@@ -1,114 +1,248 @@
+
 "use client";
-import { useEffect, useState } from "react";
-import { User, Mail, Phone, MapPin, LogOut, Edit } from "lucide-react";
-import Link from "next/link";
+
+import { useEffect, useState, ChangeEvent } from "react";
+import {
+  User,
+  Mail,
+  Phone,
+  Shield,
+  Calendar,
+  Edit,
+  Save,
+  X,
+  LogOut,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
+interface UserData {
+  id: number;
+  username: string;
+  email: string;
+  phone: string;
+  role: string;
+  joined: string;
+}
+
 export default function ProfilePage() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string>("Guest");
+
+
+
+  const [user, setUser] = useState<UserData | null>(null);
+  const [form, setForm] = useState<UserData | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
 
+  // Load user from localStorage
   useEffect(() => {
-    const email = localStorage.getItem("userEmail");
-    if (email) {
-      setUserEmail(email);
-      setUserName(email.split("@")[0]);
+    const stored = localStorage.getItem("userData");
+    if (!stored) {
+      router.push("/login");
+      return;
     }
-  }, []);
 
-  // Avatar initials
-  const initials = userName ? userName[0].toUpperCase() : "G";
+    const parsed = JSON.parse(stored);
+
+    const data: UserData = {
+      id: parsed.id,
+      username: parsed.name || "User",
+      email: parsed.email,
+      phone: parsed.phone || "",
+      role: parsed.role || "User",
+      joined: new Date().toLocaleDateString(),
+    };
+
+    setUser(data);
+    setForm(data);
+  }, [router]);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!form) return;
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // ✅ FINAL SAVE FUNCTION (BACKEND + UI + LOCALSTORAGE)
+  const handleSave = async () => {
+    if (!form) return;
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:4000/api/users/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: form.id,              // REQUIRED by DTO
+          name: form.username,      // maps to DB column `name`
+          phone: form.phone,
+        }),
+      });
+
+      const responseText = await res.text();
+
+      if (!res.ok) {
+        console.error("Backend error:", responseText);
+        throw new Error(responseText);
+      }
+
+      // Update UI
+      setUser(form);
+      setEditMode(false);
+
+      // Sync localStorage
+      localStorage.setItem(
+        "userData",
+        JSON.stringify({
+          id: form.id,
+          name: form.username,
+          email: form.email,
+          phone: form.phone,
+          role: form.role,
+        })
+      );
+    } catch (error) {
+      console.error(error);
+      alert("❌ Profile update failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setForm(user);
+    setEditMode(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("userData");
+    router.push("/login");
+  };
+
+  if (!user || !form) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+        Loading profile…
+      </div>
+    );
+  }
+
+  const initials = user.username.charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 text-white">
-      {/* Header */}
-      <div className="relative bg-black/30 backdrop-blur-md p-10 flex flex-col items-center">
-        {/* Avatar infographic */}
-        <div className="w-28 h-28 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-400 to-indigo-400 border-4 border-white shadow-lg text-4xl font-bold">
-          {initials}
-        </div>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* HEADER */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 h-64 bg-muted/50" />
 
-        <h1 className="mt-4 text-3xl font-bold">{userName}</h1>
-        <p className="text-sm text-gray-200">{userEmail}</p>
-        <div className="flex gap-4 mt-6">
-          <button
-            onClick={() => alert("Edit profile clicked")}
-            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg shadow transition"
-          >
-            <Edit className="h-4 w-4" /> Edit Profile
-          </button>
-          <button
-            onClick={() => {
-              localStorage.removeItem("userEmail");
-              router.push("/home");
-            }}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg shadow transition"
-          >
-            <LogOut className="h-4 w-4" /> Logout
-          </button>
+        <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-12">
+          <div className="flex flex-col lg:flex-row items-center gap-10">
+            {/* Avatar */}
+            <div className="w-32 h-32 rounded-full bg-primary/20 flex items-center justify-center ring-8 ring-background">
+              <div className="w-24 h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold">
+                {initials}
+              </div>
+            </div>
+
+            {/* User Info */}
+            <div className="flex-1 text-center lg:text-left">
+              <h1 className="text-3xl font-semibold">{user.username}</h1>
+              <p className="text-muted-foreground mt-1">{user.email}</p>
+
+              <div className="flex gap-2 mt-4 justify-center lg:justify-start">
+                <span className="px-3 py-1 rounded-full text-sm bg-accent">
+                  {user.role}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  Member since {user.joined}
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3 justify-center">
+              <button
+                onClick={() => router.push("/welcome")}
+                className="px-4 py-2 rounded-md border border-border hover:bg-accent"
+              >
+                ← Back
+              </button>
+
+              {!editMode ? (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground"
+                >
+                  <Edit size={16} /> Edit Profile
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 rounded-md bg-green-600 text-white disabled:opacity-60"
+                  >
+                    <Save size={16} />
+                    {loading ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="flex items-center gap-2 px-4 py-2 rounded-md border border-border"
+                  >
+                    <X size={16} /> Cancel
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 rounded-md bg-destructive text-destructive-foreground"
+              >
+                <LogOut size={16} /> Logout
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 px-10 mt-10">
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-center shadow-lg">
-          <p className="text-3xl font-bold">12</p>
-          <p className="text-sm text-gray-200">Total Orders</p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-center shadow-lg">
-          <p className="text-3xl font-bold">3</p>
-          <p className="text-sm text-gray-200">Active Services</p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-center shadow-lg">
-          <p className="text-3xl font-bold">1</p>
-          <p className="text-sm text-gray-200">Pending Payments</p>
-        </div>
-      </div>
+      {/* DETAILS */}
+      <div className="max-w-7xl mx-auto px-6 -mt-14 pb-20">
+        <div className="bg-card border border-border rounded-2xl shadow-md p-10">
+          <h2 className="text-xl font-semibold mb-8">
+            Personal Information
+          </h2>
 
-      {/* Profile Info */}
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 mx-10 mt-10 shadow-xl">
-        <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-200">
-          <div className="flex items-center gap-3">
-            <User className="h-5 w-5 text-pink-400" />
-            <span>{userName}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Mail className="h-5 w-5 text-blue-400" />
-            <span>{userEmail}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Phone className="h-5 w-5 text-green-400" />
-            <span>+91 98765 43210</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <MapPin className="h-5 w-5 text-yellow-400" />
-            <span>Kannur, Kerala</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[
+              { label: "Full Name", name: "username", icon: User },
+              { label: "Email Address", name: "email", icon: Mail, disabled: true },
+              { label: "Phone Number", name: "phone", icon: Phone },
+              { label: "Role", name: "role", icon: Shield, disabled: true },
+              { label: "Joined Date", name: "joined", icon: Calendar, disabled: true },
+            ].map(({ label, name, icon: Icon, disabled }) => (
+              <div
+                key={name}
+                className="rounded-xl border border-border p-5"
+              >
+                <label className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                  <Icon size={16} />
+                  {label}
+                </label>
+
+                <input
+                  name={name}
+                  value={(form as any)[name] || ""}
+                  onChange={handleChange}
+                  disabled={!editMode || disabled}
+                  className="w-full rounded-md bg-background px-3 py-2 border border-border text-sm focus:ring-2 focus:ring-primary/40 disabled:opacity-60"
+                />
+              </div>
+            ))}
           </div>
         </div>
-      </div>
-
-      {/* Quick Links */}
-      <div className="flex justify-center gap-6 mt-10 pb-20">
-        <Link
-          href="/orders"
-          className="w-[200px] h-[70px] rounded-xl bg-indigo-600 text-lg font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-        >
-          📦 My Orders
-        </Link>
-        <Link
-          href="/services"
-          className="w-[200px] h-[70px] rounded-xl bg-indigo-600 text-lg font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-        >
-          🛠 My Services
-        </Link>
-        <Link
-          href="/support"
-          className="w-[200px] h-[70px] rounded-xl bg-indigo-600 text-lg font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-        >
-          💬 Support
-        </Link>
       </div>
     </div>
   );

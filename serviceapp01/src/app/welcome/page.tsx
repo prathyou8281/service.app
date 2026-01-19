@@ -1,111 +1,164 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  LogOut,
+  Wrench,
+  ShoppingBag,
+  ClipboardList,
+  LifeBuoy,
+} from "lucide-react";
+import ProfileDropdown from "@/components/ProfileDropdown/ProfileDropdown";
 
 export default function Home() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string>("Guest");
+  const router = useRouter();
+  const [userName, setUserName] = useState("Guest");
 
   useEffect(() => {
-    const email = localStorage.getItem("userEmail");
-    if (email) {
-      setUserEmail(email);
-      setUserName(email.split("@")[0]); // 👈 take name before "@"
+    const userData = localStorage.getItem("userData");
+
+    if (!userData) {
+      router.push("/user/login");
+      return;
     }
-  }, []);
+
+    const parsed = JSON.parse(userData);
+    setUserName(parsed.name || "User");
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("userData");
+    localStorage.removeItem("userEmail");
+    router.push("/login");
+  };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-r from-blue-700 to-indigo-800">
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/20" />
+    <div className="min-h-screen w-full bg-[var(--background)] text-[var(--foreground)] relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 via-transparent to-[var(--highlight)]/10 pointer-events-none" />
+      <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[var(--accent)]/20 blur-3xl rounded-full" />
+      <div className="absolute bottom-0 -left-40 w-[400px] h-[400px] bg-[var(--highlight)]/20 blur-3xl rounded-full" />
 
-      {/* Split Layout */}
-      <div className="relative z-30 flex h-full items-center justify-between px-10">
-        {/* Left Side: Greeting + Stats + Activity */}
-        <div className="max-w-2xl text-left space-y-10 pt-20">
-          {/* Greeting */}
-          <div>
-            <h1 className="mb-10 text-4xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-lg">
-              Welcome back,{" "}
-              <span className="bg-gradient-to-r from-pink-400 to-indigo-400 bg-clip-text text-transparent">
-                {userName}
-              </span>{" "}
-              👋
-            </h1>
-            <p className="text-lg leading-relaxed text-gray-200 sm:text-xl">
-              Your one-stop solution for{" "}
-              <span className="font-semibold text-pink-300">IT services</span>,{" "}
-              <span className="font-semibold text-indigo-300">laptops</span> & more.
-              <br />
-              <span className="italic text-gray-300">
-                Fast • Reliable • Affordable
-              </span>
-            </p>
+      {/* Top bar */}
+      <div className="relative z-50 flex justify-end items-center gap-4 px-6 py-4">
+        <ProfileDropdown />
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </button>
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col min-h-[calc(100vh-80px)] px-6 sm:px-10 lg:px-16 pb-12">
+        {/* HERO */}
+        <section className="flex-1 flex flex-col justify-center max-w-6xl">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
+            Smart Services. <br />
+            <span className="text-[var(--accent)]">Simpler Life.</span>
+          </h1>
+
+          <p className="mt-6 max-w-2xl text-lg sm:text-xl text-[var(--secondary)] leading-relaxed">
+            Welcome back,{" "}
+            <span className="font-semibold text-[var(--accent)]">
+              {userName}
+            </span>
+            .  
+            Manage repairs, book trusted technicians, track orders,  
+            and get fast support — all from one powerful service platform.
+          </p>
+
+          <p className="mt-3 text-sm sm:text-base text-[var(--muted)] italic">
+            Reliable • Professional • On-Time Services
+          </p>
+
+          {/* Primary CTAs */}
+          <div className="mt-10 flex flex-col sm:flex-row gap-4">
+            <Link
+              href="/explore"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-[var(--card-border)] font-semibold text-lg hover:bg-white/5 transition"
+            
+            >
+              <Wrench className="w-5 h-5" />
+              Explore Services
+            </Link>
+            <Link
+              href="/orders"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-[var(--card-border)] font-semibold text-lg hover:bg-white/5 transition"
+            >
+              <ClipboardList className="w-5 h-5" />
+              My Orders
+            </Link>
           </div>
+        </section>
 
+        {/* DASHBOARD SECTIONS */}
+        <section className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg text-center">
-              <p className="text-3xl font-bold text-white">12</p>
-              <p className="text-sm text-gray-300">Total Orders</p>
+          {[
+            { value: "12", label: "Total Orders" },
+            { value: "3", label: "Active Services" },
+            { value: "1", label: "Pending Payments" },
+          ].map((stat, i) => (
+            <div
+              key={i}
+              className="rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] p-6 shadow-md hover:shadow-xl transition"
+            >
+              <p className="text-4xl font-extrabold text-[var(--accent)]">
+                {stat.value}
+              </p>
+              <p className="mt-2 text-sm text-[var(--secondary)] uppercase tracking-wide">
+                {stat.label}
+              </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg text-center">
-              <p className="text-3xl font-bold text-white">3</p>
-              <p className="text-sm text-gray-300">Active Services</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg text-center">
-              <p className="text-3xl font-bold text-white">1</p>
-              <p className="text-sm text-gray-300">Pending Payments</p>
-            </div>
-          </div>
+          ))}
+        </section>
 
-          {/* Activity */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-white mb-3">
-              Recent Activity
+        {/* SERVICES & ACTIONS */}
+        <section className="mt-14 grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* What you can do */}
+          <div className="rounded-3xl bg-[var(--card-bg)] border border-[var(--card-border)] p-8 shadow-md">
+            <h2 className="text-2xl font-bold mb-4">
+              What you can do here
             </h2>
-            <ul className="space-y-2 text-gray-200 text-sm">
-              <li>📦 You ordered: Lenovo IdeaPad S145</li>
-              <li>🛠 Service request #123 is in progress</li>
-              <li>💳 Payment for Order #456 is pending</li>
+            <ul className="space-y-3 text-[var(--secondary)]">
+              <li>🛠 Book laptop & mobile repair services</li>
+              <li>👨‍🔧 Find verified technicians near you</li>
+              <li>📦 Track your service & product orders</li>
+              <li>💳 Manage payments & invoices</li>
+              <li>💬 Get instant customer support</li>
             </ul>
           </div>
-        </div>
 
-              {/* Right Side: Buttons */}
-      <div className="absolute right-1/6 top-1/2 -translate-y-1/7 flex flex-col gap-6 items-center">
-        {/* First row: Services + Vendors */}
-        <div className="flex gap-4">
-          <Link
-            href="/services"
-            className="w-[200px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-          >
-            🛠 Services
-          </Link>
-          <Link
-            href="/vendors"
-            className="w-[200px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-          >
-            🏬 Vendors
-          </Link>
-        </div>
+          {/* Quick actions */}
+          <div className="rounded-3xl bg-[var(--card-bg)] border border-[var(--card-border)] p-8 shadow-md">
+            <h2 className="text-2xl font-bold mb-6">
+              Quick Actions
+            </h2>
 
-        {/* Second row: Orders */}
-        <Link
-          href="/orders"
-          className="w-[420px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-        >
-          📦 My Orders
-        </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link
+                href="/vendors"
+                className="flex items-center gap-3 p-5 rounded-xl bg-[var(--highlight)] text-white font-semibold hover:opacity-90 transition"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                View Vendors
+              </Link>
 
-        {/* Third row: Support */}
-        <Link
-          href="/support"
-          className="w-[420px] h-[90px] rounded-2xl bg-indigo-600 text-xl font-bold text-white shadow-xl hover:bg-indigo-500 transition flex items-center justify-center"
-        >
-          💬 Support
-        </Link>
-      </div>
+              <Link
+                href="/support"
+                className="flex items-center gap-3 p-5 rounded-xl border border-[var(--card-border)] hover:bg-white/5 transition font-semibold"
+              >
+                <LifeBuoy className="w-5 h-5" />
+                Support
+              </Link>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
