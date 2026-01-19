@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  ForbiddenException,
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -19,9 +20,21 @@ interface UserRow {
   status?: string;
 }
 
+interface AdminRow {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  profile_photo: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 @Injectable()
 export class AuthService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(private databaseService: DatabaseService) { }
 
   async register(registerDto: RegisterDto) {
     const { name, email, phone, password } = registerDto;
@@ -114,47 +127,54 @@ export class AuthService {
     }
   }
 
-  async login(loginDto: LoginDto) {
+  async adminLogin(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
     try {
-      // Find user by email
-      const users = await this.databaseService.query<UserRow[]>(
-        'SELECT * FROM users WHERE email = ? LIMIT 1',
+      // Find admin by email
+      const admins = await this.databaseService.query<AdminRow[]>(
+        'SELECT id, name, email, phone, password, profile_photo, status FROM admins WHERE email = ? LIMIT 1',
         [email],
       );
 
-      if (users.length === 0) {
+      if (admins.length === 0) {
         throw new UnauthorizedException('Invalid email or password');
       }
 
-      const user = users[0];
+      const admin = admins[0];
 
       // Check account status
-      if (user.status && user.status.toLowerCase() !== 'active') {
-        throw new UnauthorizedException('Account is not active');
+      if (admin.status.toLowerCase() !== 'active') {
+        throw new ForbiddenException('Account is not active or has been disabled');
       }
 
       // Verify password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = await bcrypt.compare(password, admin.password);
 
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid email or password');
       }
 
-      // Return user info (without password)
+      // Return admin info
       return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || null,
-        role: 'User',
+        id: admin.id,
+        name: admin.name,
+        email: admin.email,
+        phone: admin.phone,
+        profile_photo: admin.profile_photo,
+        status: admin.status,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      console.error('Login error:', error);
+      console.error('Admin Login error:', error);
+
+      // Handle table not existing error specifically to give better feedback
+      if (error.code === 'ER_NO_SUCH_TABLE' || (error.message && error.message.includes("admins' doesn't exist"))) {
+        throw new InternalServerErrorException("The 'admins' table does not exist in the database. Please create it first.");
+      }
+
       throw new InternalServerErrorException('Login failed');
     }
   }

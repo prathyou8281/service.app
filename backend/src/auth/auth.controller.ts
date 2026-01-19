@@ -6,6 +6,7 @@ import {
   HttpStatus,
   HttpException,
   UnauthorizedException,
+  ForbiddenException,
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -15,7 +16,7 @@ import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -63,28 +64,49 @@ export class AuthController {
     }
   }
 
-  @Post('login')
+  @Post('admin/login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
+  async adminLogin(@Body() loginDto: LoginDto) {
     try {
-      const user = await this.authService.login(loginDto);
+      const admin = await this.authService.adminLogin(loginDto);
       return {
-        success: true,
         message: 'Login successful',
-        user,
-        redirect: '/welcome',
+        admin,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
-        throw error;
+        throw new HttpException(
+          {
+            message: error.message || 'Invalid email or password',
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
       }
 
-      // Handle validation errors
-      if (error.response && error.response.message) {
-        throw new BadRequestException(error.response.message);
+      if (error instanceof ForbiddenException) {
+        throw new HttpException(
+          {
+            message: error.message || 'Account is not active',
+          },
+          HttpStatus.FORBIDDEN,
+        );
       }
 
-      throw new InternalServerErrorException('Login failed');
+      if (error instanceof InternalServerErrorException) {
+        throw new HttpException(
+          {
+            message: error.message || 'Login failed',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: 'Process failed',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
