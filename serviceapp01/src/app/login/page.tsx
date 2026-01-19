@@ -15,7 +15,8 @@ export default function LoginPage() {
   const router = useRouter();
 
   // ✅ Auto-redirect only if valid stored user
-  useEffect(() => {
+  useEffect(() => { 
+    
     try {
       const storedUser = localStorage.getItem("userData");
       if (!storedUser) return;
