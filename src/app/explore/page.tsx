@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Laptop,
   Monitor,
@@ -20,125 +21,61 @@ import {
   Globe,
   Car,
   Cpu,
+  Loader2,
+  Users
 } from "lucide-react";
 
-const services = [
-  {
-    title: "Refurbished Laptops",
-    description: "Certified laptops with warranty at affordable prices.",
-    icon: Laptop,
-    slug: "refurbished-laptops",
-  },
-  {
-    title: "New Laptops",
-    description: "Latest branded laptops with full manufacturer warranty.",
-    icon: Laptop,
-    slug: "new-laptops",
-  },
-  {
-    title: "Custom Gaming PCs",
-    description: "High-performance gaming builds with RGB & cooling.",
-    icon: Monitor,
-    slug: "custom-gaming-pcs",
-  },
-  {
-    title: "Laptop & PC Repair",
-    description: "Screen, battery, keyboard & motherboard repairs.",
-    icon: Wrench,
-    slug: "repair-service",
-  },
-  {
-    title: "Data Recovery",
-    description: "Recover data from HDD, SSD, USB & memory cards.",
-    icon: Database,
-    slug: "data-recovery",
-  },
-  {
-    title: "Software & OS Installation",
-    description: "Windows, drivers, antivirus & optimization services.",
-    icon: HardDrive,
-    slug: "software-os-installation",
-  },
-  {
-    title: "Networking & Wi-Fi Setup",
-    description: "Home & office networking with secure configuration.",
-    icon: Router,
-    slug: "networking",
-  },
-  {
-    title: "CCTV Installation",
-    description: "Indoor & outdoor CCTV with mobile access.",
-    icon: Camera,
-    slug: "cctv-installation",
-  },
-  {
-    title: "Printer Service",
-    description: "Printer repair, toner refill & cartridge replacement.",
-    icon: Printer,
-    slug: "printer-service",
-  },
-  {
-    title: "Accessories & Upgrades",
-    description: "RAM, SSD, GPU & performance upgrades.",
-    icon: Package,
-    slug: "accessories-upgrades",
-  },
-  {
-    title: "UPS & Inverters",
-    description: "Reliable power backup solutions for homes & offices.",
-    icon: Battery,
-    slug: "ups-inverter",
-  },
-  {
-    title: "Annual Maintenance (AMC)",
-    description: "Proactive IT support plans for businesses.",
-    icon: ShieldCheck,
-    slug: "amc",
-  },
-  {
-    title: "Mobile Repair",
-    description: "Display, battery & board-level mobile repairs.",
-    icon: Smartphone,
-    slug: "mobile-repair",
-  },
-  {
-    title: "Smart Home Automation",
-    description: "Smart lights, cameras & automation systems.",
-    icon: Home,
-    slug: "smart-home",
-  },
-  {
-    title: "Web Development & IT",
-    description: "Websites, apps & digital IT solutions.",
-    icon: Globe,
-    slug: "web-development",
-  },
-  {
-    title: "Car Wash & Detailing",
-    description: "Professional car wash & interior detailing.",
-    icon: Car,
-    slug: "car-wash",
-  },
-  {
-    title: "Creator PC Builds",
-    description: "Editing rigs for designers & video creators.",
-    icon: Cpu,
-    slug: "creator-pc-builds",
-  },
-];
+// Helper to map icon names to Lucide components
+const IconMap: { [key: string]: any } = {
+  Laptop,
+  Monitor,
+  Wrench,
+  Database,
+  HardDrive,
+  Router,
+  Camera,
+  Printer,
+  Package,
+  Battery,
+  ShieldCheck,
+  Smartphone,
+  Home,
+  Globe,
+  Car,
+  Cpu,
+};
+
+interface ServiceCategory {
+  name: string;
+  short_description: string;
+  starting_price: number;
+  icon: string;
+  vendor_count: number;
+}
 
 export default function ExploreServices() {
   const router = useRouter();
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleBook = (slug: string) => {
-    const userData = localStorage.getItem("userData");
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-    if (!userData) {
-      router.push(`/login?redirect=book-service&service=${slug}`);
-      return;
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/services/unique");
+      const data = await res.json();
+      setCategories(data);
+    } catch (error) {
+      console.error("Failed to fetch service categories:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    router.push(`/book-service?service=${slug}`);
+  const handleServiceClick = (category: ServiceCategory) => {
+    router.push(`/services/vendors?name=${encodeURIComponent(category.name)}`);
   };
 
   return (
@@ -157,52 +94,63 @@ export default function ExploreServices() {
           </h1>
 
           <p className="mt-4 max-w-3xl mx-auto text-lg text-[var(--secondary)]">
-            From laptop repairs and IT solutions to smart homes and car care —  
-            book trusted services instantly with transparent pricing and expert support.
+            Choose a category to find verified professional partners ready to help you instantly.
           </p>
         </motion.div>
 
-        {/* SERVICES GRID */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {services.map((service, idx) => (
-            <motion.div
-              key={service.slug}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: idx * 0.04 }}
-              viewport={{ once: true }}
-              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-6 shadow-md hover:shadow-xl transition flex flex-col"
-            >
-              {/* ICON */}
-              <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mb-5">
-                <service.icon className="w-7 h-7 text-[var(--accent)]" />
-              </div>
-
-              {/* CONTENT */}
-              <h2 className="text-xl font-bold mb-2">{service.title}</h2>
-              <p className="text-sm text-[var(--secondary)] flex-1">
-                {service.description}
-              </p>
-
-              {/* ACTIONS */}
-              <div className="mt-6 flex gap-3">
-                <Link
-                  href={`/services/${service.slug}`}
-                  className="flex-1 text-center text-sm font-semibold rounded-xl border border-[var(--card-border)] py-2 hover:bg-white/5 transition"
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-10 h-10 animate-spin text-[var(--accent)]" />
+          </div>
+        ) : (
+          /* SERVICES GRID */
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {categories.map((cat, idx) => {
+              const IconComponent = IconMap[cat.icon] || Package;
+              return (
+                <motion.div
+                  key={cat.name}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: idx * 0.04 }}
+                  viewport={{ once: true }}
+                  onClick={() => handleServiceClick(cat)}
+                  className="group cursor-pointer bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[2.5rem] p-8 shadow-sm hover:shadow-2xl hover:border-sky-500/30 transition-all duration-500 flex flex-col relative overflow-hidden"
                 >
-                  View Details
-                </Link>
+                  {/* Background Accents */}
+                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
+                    <IconComponent className="w-24 h-24" />
+                  </div>
 
-                <button
-                  onClick={() => handleBook(service.slug)}
-                  className="flex-1 text-sm font-semibold rounded-xl bg-[var(--accent)] text-white py-2 hover:opacity-90 transition"
-                >
-                  Book Now
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                  {/* ICON */}
+                  <div className="w-16 h-16 rounded-2xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center mb-8 shadow-sm group-hover:bg-sky-500 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500">
+                    <IconComponent className="w-8 h-8 text-sky-500 group-hover:text-white transition-colors duration-500" />
+                  </div>
+
+                  {/* CONTENT */}
+                  <h2 className="text-2xl font-black mb-3 group-hover:text-sky-500 transition-colors duration-300">{cat.name}</h2>
+                  <p className="text-sm text-[var(--secondary)] flex-1 line-clamp-2">
+                    {cat.short_description}
+                  </p>
+
+                  <div className="mt-8 flex items-end justify-between border-t border-gray-100 dark:border-white/5 pt-6">
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Starting at</p>
+                      <p className="text-xl font-black text-sky-500">₹{cat.starting_price}</p>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500">
+                        <Users className="w-3.5 h-3.5" />
+                        {cat.vendor_count} Partners
+                      </div>
+                      <span className="text-[10px] font-black text-sky-500 uppercase tracking-widest mt-1 group-hover:translate-x-1 transition-transform">Explore →</span>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

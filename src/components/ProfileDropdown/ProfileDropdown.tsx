@@ -6,10 +6,11 @@ import { User, Settings, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type ProfileDropdownProps = {
-  user: { username: string; email: string; role: string } | null;
+  user: { username: string; email: string; role: string; name?: string; profile_photo?: string } | null;
+  onSettingsClick?: () => void;
 };
 
-export default function ProfileDropdown({ user }: ProfileDropdownProps) {
+export default function ProfileDropdown({ user, onSettingsClick }: ProfileDropdownProps) {
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -38,15 +39,15 @@ export default function ProfileDropdown({ user }: ProfileDropdownProps) {
           <img
             src="/images/avatar.png"
             alt="user avatar"
-            className="w-10 h-10 rounded-full border-2 border-[var(--foreground)]"
+            className="w-10 h-10 rounded-full border-2 border-gray-900"
           />
           <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500 border-2 border-white"></span>
         </div>
         <div className="flex flex-col items-start hidden sm:flex">
-          <span className="text-sm font-semibold text-[var(--foreground)] lowercase">
+          <span className="text-sm font-semibold text-gray-900 lowercase">
             {user?.username || "guest"}
           </span>
-          <span className="text-xs text-[var(--foreground)] lowercase">
+          <span className="text-xs text-gray-900 lowercase">
             {user?.role || "member"}
           </span>
         </div>
@@ -59,32 +60,37 @@ export default function ProfileDropdown({ user }: ProfileDropdownProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-52 rounded-xl bg-white shadow-xl ring-1 ring-black/10 text-[var(--foreground)] lowercase"
+            className="absolute right-0 mt-2 w-52 rounded-xl bg-white shadow-xl ring-1 ring-black/10 text-gray-900 lowercase"
           >
             <div className="px-4 py-3 border-b border-gray-200">
               <p className="text-sm font-semibold">{user?.username || "guest"}</p>
               <p className="text-xs text-gray-500">{user?.email || "guest@example.com"}</p>
             </div>
 
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[var(--accent-hover)]"
-            >
-              <User className="w-4 h-4 text-[var(--accent)]" />
-              profile
-            </Link>
-
-            <Link
-              href="/settings"
-              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[var(--accent-hover)]"
-            >
-              <Settings className="w-4 h-4 text-[var(--accent)]" />
-              settings
-            </Link>
+            {onSettingsClick ? (
+              <button
+                onClick={() => {
+                  onSettingsClick();
+                  setOpen(false);
+                }}
+                className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                <Settings className="w-4 h-4 text-gray-500" />
+                settings
+              </button>
+            ) : (
+              <Link
+                href="/settings"
+                className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                <Settings className="w-4 h-4 text-gray-500" />
+                settings
+              </Link>
+            )}
 
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-red-500/20"
+              className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-red-50"
             >
               <LogOut className="w-4 h-4 text-red-500" />
               logout

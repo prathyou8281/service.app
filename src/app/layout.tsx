@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import TopNav from "@/components/nav";      // ✅ import your TopNav component
-import Footer from "@/components/footer";  // ✅ import your Footer component
+import TopNav from "@/components/nav";
+import Footer from "@/components/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,16 +22,24 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body >
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {/* ✅ Navbar always on top */}
+        <TopNav />
 
-        <TopNav />         {/* ✅ Navbar always on top */}
-        <main className="min-h-[60vh]">{children}</main>
-        <Footer brandName="Your Brand" /> {/* ✅ Footer always at bottom */}
+        {/* ✅ Page content */}
+        <main className="min-h-[60vh]">
+          {children}
+        </main>
+
+        {/* ✅ Footer always at bottom */}
+        <Footer brandName="Your Brand" />
       </body>
     </html>
   );

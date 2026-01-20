@@ -14,30 +14,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // ✅ Auto-redirect only if valid stored user
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem("userData");
       if (!storedUser) return;
 
       const parsed = JSON.parse(storedUser);
-      if (parsed && parsed.email && parsed.role) {
-        // Redirect based on stored role
-        switch (parsed.role.toLowerCase()) {
-          case "admin":
-            router.replace("/admin/dashboard");
-            break;
-          case "vendor":
-            router.replace("/vendor/dashboard");
-            break;
-          case "technician":
-            router.replace("/technician/dashboard");
-            break;
-          default:
-            router.replace("/welcome");
-        }
-      } else {
-        localStorage.removeItem("userData");
+      if (parsed?.role) {
+        router.replace(`/${parsed.role}/dashboard`);
       }
     } catch {
       localStorage.removeItem("userData");
@@ -49,7 +33,7 @@ export default function LoginPage() {
     setError("");
 
     if (!email || !password) {
-      setError("⚠️ Please enter both email and password!");
+      setError("Please enter both email and password");
       return;
     }
 
@@ -65,92 +49,135 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data.message || "❌ Invalid email or password");
-        setLoading(false);
+        setError(data.message || "Invalid email or password");
         return;
       }
 
-      // ✅ Save verified user info
       localStorage.setItem("userData", JSON.stringify(data.user));
+      localStorage.setItem("access_token", data.user.access_token);
 
-      // ✅ Redirect based on verified backend role
+      // Set cookie for middleware/session
+      document.cookie = `userData=${JSON.stringify({
+        username: data.user.name,
+        role: data.user.role || "user",
+      })}; path=/; max-age=86400; SameSite=Lax`;
+
+      // Check for pending booking redirected from explore
+      const pendingBooking = localStorage.getItem("pendingBooking");
+      if (pendingBooking) {
+        try {
+          const service = JSON.parse(pendingBooking);
+          localStorage.removeItem("pendingBooking");
+          router.push(`/book-service?serviceId=${service.id}`);
+          return;
+        } catch (e) {
+          localStorage.removeItem("pendingBooking");
+        }
+      }
+
       router.push(data.redirect || "/welcome");
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("⚠️ Server error, please try again later.");
+    } catch {
+      setError("Server error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative bg-[var(--background)] text-[var(--foreground)] transition-colors duration-500">
-      <div className="card w-96 p-10 bg-white/60 dark:bg-white/10 border border-white/30 shadow-2xl backdrop-blur-2xl animate-fadeInUp">
-        <h1 className="text-4xl font-extrabold text-center mb-8 text-[var(--foreground)]">
-          Login
-        </h1>
+    <div className="relative min-h-screen flex items-center justify-center bg-[var(--background)] overflow-hidden">
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Email"
+      {/* Background glow */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-sky-400/30 rounded-full blur-3xl" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+
+      {/* Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 40, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative w-full max-w-md p-10 rounded-3xl
+                   bg-white/70 dark:bg-white/10
+                   backdrop-blur-2xl border border-white/30
+                   shadow-2xl"
+      >
+        <h1 className="text-4xl font-extrabold text-center mb-2">
+          Welcome Back
+        </h1>
+        <p className="text-center text-sm opacity-70 mb-8">
+          Login to continue
+        </p>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <motion.input
+            whileFocus={{ scale: 1.02 }}
+            type="email"
+            placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
             disabled={loading}
+            className="w-full px-4 py-3 rounded-xl border border-gray-300
+                       focus:ring-2 focus:ring-[var(--accent)]
+                       outline-none transition"
           />
-          <input
+
+          <motion.input
+            whileFocus={{ scale: 1.02 }}
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
             disabled={loading}
+            className="w-full px-4 py-3 rounded-xl border border-gray-300
+                       focus:ring-2 focus:ring-[var(--accent)]
+                       outline-none transition"
           />
 
-          <div className="text-right">
+          <div className="text-right text-sm">
             <Link
               href="/forgetpassword"
-              className="text-sm text-[var(--accent)] hover:underline"
+              className="text-[var(--accent)] hover:underline"
             >
-              Forgot Password?
+              Forgot password?
             </Link>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
             type="submit"
             disabled={loading}
-            className={`btn-primary mt-4 w-full text-center ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+            className="w-full py-3 rounded-xl
+                       bg-[var(--accent)] text-white
+                       font-semibold shadow-lg
+                       disabled:opacity-70"
           >
             {loading ? "Logging in..." : "Login"}
-          </button>
+          </motion.button>
         </form>
 
-        <div className="flex items-center my-6">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-4 text-sm opacity-70">OR</span>
-          <div className="flex-grow border-t border-gray-300"></div>
+        <div className="flex items-center my-6 opacity-60">
+          <div className="flex-grow border-t" />
+          <span className="mx-3 text-xs">OR</span>
+          <div className="flex-grow border-t" />
         </div>
 
-        <p className="text-center text-sm mt-6 opacity-80">
-          Don't have an account?{" "}
-          <Link href="/register" className="text-[var(--accent)] hover:underline">
+        <p className="text-center text-sm opacity-80">
+          Don’t have an account?{" "}
+          <Link href="/register" className="text-[var(--accent)] font-semibold">
             Register
           </Link>
         </p>
-      </div>
+      </motion.div>
 
-      {/* Animated Error Popup */}
+      {/* Error Toast */}
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            initial={{ opacity: 0, y: -30, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="absolute top-10 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg font-semibold"
+            exit={{ opacity: 0, y: -30, scale: 0.9 }}
+            transition={{ duration: 0.35 }}
+            className="absolute top-8 bg-red-500 text-white px-6 py-3 rounded-xl shadow-xl font-medium"
           >
             {error}
           </motion.div>
