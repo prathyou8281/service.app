@@ -116,6 +116,25 @@ export class AuthController {
     }
   }
 
+  /* ================= TECHNICIAN LOGIN ================= */
+  @Post('technician/login')
+  @HttpCode(HttpStatus.OK)
+  async technicianLogin(@Body() loginDto: LoginDto) {
+    try {
+      const tech = await this.authService.technicianLogin(loginDto);
+      return {
+        success: true,
+        message: 'Technician login successful',
+        technician: tech,
+      };
+    } catch (error) {
+      throw new HttpException(
+        { success: false, message: error.message || 'Login failed' },
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
   /* ===================== PROFILE ===================== */
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('user')
@@ -129,5 +148,10 @@ export class AuthController {
   @Get('admin/me')
   async getAdminProfile(@Request() req) {
     return this.authService.getAdminProfile(req.user.userId);
+  }
+
+  @Get('init-schema')
+  async initSchema() {
+    return this.authService.initSchema();
   }
 }

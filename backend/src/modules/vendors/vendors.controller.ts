@@ -1,4 +1,4 @@
-import { Body, Controller, Post, BadRequestException, UseGuards, Get, Request } from "@nestjs/common";
+import { Body, Controller, Post, BadRequestException, UseGuards, Get, Request, Put } from "@nestjs/common";
 import { VendorsService } from "./vendors.service";
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../auth/roles.guard';
@@ -46,6 +46,31 @@ export class VendorsController {
   async getProfile(@Request() req) {
     const profile = await this.vendorsService.getProfile(req.user.userId);
     if (!profile) throw new BadRequestException('Vendor not found');
-    return profile;
+    return { success: true, data: profile };
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('vendor')
+  @Get("metrics")
+  async getMetrics(@Request() req) {
+    return this.vendorsService.getMetrics(req.user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('vendor')
+  @Put("update-profile")
+  async updateProfile(@Request() req, @Body() body: any) {
+    return this.vendorsService.updateProfile(req.user.userId, body);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('vendor')
+  @Put("change-password")
+  async changePassword(@Request() req, @Body() body: any) {
+    try {
+      return await this.vendorsService.changePassword(req.user.userId, body);
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
   }
 }

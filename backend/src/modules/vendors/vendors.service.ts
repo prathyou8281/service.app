@@ -11,7 +11,7 @@ export class VendorsService {
   ) { }
 
   async register(data: any): Promise<void> {
-    const { name, email, phone, password, address } = data; // Assuming address is simple string for now or handled separately
+    const { name, email, phone, password, description } = data;
 
     // Check existing
     const rows = await this.db.query<any[]>('SELECT id FROM vendors WHERE email = ?', [email]);
@@ -23,9 +23,9 @@ export class VendorsService {
 
     try {
       await this.db.query(
-        `INSERT INTO vendors (name, email, phone, password, status) 
-         VALUES (?, ?, ?, ?, 'active')`,
-        [name, email, phone, hashedPassword]
+        `INSERT INTO vendors (name, email, phone, password, description, status, is_verified) 
+         VALUES (?, ?, ?, ?, ?, 'pending', 0)`,
+        [name, email, phone, hashedPassword, description]
       );
     } catch (error) {
       console.error(error);
@@ -63,5 +63,44 @@ export class VendorsService {
     if (!rows || rows.length === 0) return null;
     const { password, ...result } = rows[0];
     return result;
+  }
+
+  async getMetrics(vendorId: number) {
+    const [services]: any = await this.db.query('SELECT COUNT(*) as count FROM services WHERE vendor_id = ?', [vendorId]);
+    const [technicians]: any = await this.db.query('SELECT COUNT(*) as count FROM technicians WHERE vendor_id = ?', [vendorId]);
+    const [bookings]: any = await this.db.query('SELECT COUNT(*) as count FROM services_histories WHERE vendor_id = ? AND status = "pending"', [vendorId]);
+    const [earnings]: any = await this.db.query('SELECT SUM(total_amount) as total FROM services_histories WHERE vendor_id = ? AND status = "completed"', [vendorId]);
+
+    return {
+      success: true,
+      data: {
+        services: services.count,
+        technicians: technicians.count,
+        pendingBookings: bookings.count,
+        totalEarnings: earnings.total || 0,
+      }
+    };
+  }
+
+  async updateProfile(id: number, data: any) {
+    const { name, phone, description } = data;
+    await this.db.query(
+      'UPDATE vendors SET name = ?, phone = ?, description = ? WHERE id = ?',
+      [name, phone, description, id]
+    );
+    return { success: true };
+  }
+
+  async changePassword(id: number, body: any) {
+    const { currentPassword, newPassword } = body;
+    const rows: any = await this.db.query('SELECT password FROM vendors WHERE id = ?', [id]);
+    if (!rows.length) throw new Error('Vendor not found');
+
+    const isValid = await bcrypt.compare(currentPassword, rows[0].password);
+    if (!isValid) throw new Error('Incorrect current password');
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.db.query('UPDATE vendors SET password = ? WHERE id = ?', [hashedPassword, id]);
+    return { success: true };
   }
 }
