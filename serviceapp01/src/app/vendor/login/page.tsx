@@ -1,132 +1,97 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function VendorLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const res = await fetch(
-        "http://localhost:4000/api/vendors/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const res = await fetch("http://localhost:4000/api/vendors/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await res.json();
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Vendor login failed");
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
       }
 
-      // ✅ STORE LOGIN DATA (THIS FIXES DASHBOARD REDIRECT)
-      localStorage.setItem(
-        "userData",
-        JSON.stringify({
-          username: data.vendor.name,
-          role: "vendor",
-        })
-      );
+      if (data.vendor?.access_token) {
+        localStorage.setItem("access_token", data.vendor.access_token);
+        localStorage.setItem("userData", JSON.stringify(data.vendor));
+      }
 
-      // ✅ HARD REDIRECT (NO ROUTER, NO MIDDLEWARE)
-      window.location.href = "/vendor/dashboard";
+      router.push("/vendor/dashboard");
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
-      <div className="w-full max-w-md bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl shadow-xl p-8">
-
-        <h1 className="text-3xl font-extrabold text-center mb-2">
-          Vendor Login
-        </h1>
-        <p className="text-center text-[var(--secondary)] mb-6">
-          Manage your services, orders & customers
-        </p>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md border-t-4 border-blue-600">
+        <h2 className="mb-2 text-center text-2xl font-bold text-gray-800">Vendor Portal</h2>
+        <p className="mb-6 text-center text-sm text-gray-500">Login to manage your business</p>
 
         {error && (
-          <p className="mb-4 text-sm text-red-500 text-center">
+          <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-600">
             {error}
-          </p>
+          </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm mb-1 font-medium">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Email Address</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-[var(--card-border)]"
-              placeholder="vendor@email.com"
+              className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-1 font-medium">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-[var(--card-border)]"
-              placeholder="••••••••"
+              className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-[var(--accent)] text-white font-semibold disabled:opacity-60"
+            className="w-full rounded-md bg-blue-600 py-2 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? "Logging in..." : "Login as Vendor"}
+            {loading ? "Logging in..." : "Login to Portal"}
           </button>
         </form>
 
-        <div className="my-6 flex items-center gap-3">
-          <div className="flex-1 h-px bg-[var(--card-border)]" />
-          <span className="text-xs text-[var(--secondary)]">OR</span>
-          <div className="flex-1 h-px bg-[var(--card-border)]" />
-        </div>
-
-        <Link
-          href="/vendor/register"
-          className="block w-full text-center py-3 rounded-xl border border-[var(--accent)] text-[var(--accent)] font-semibold hover:bg-[var(--accent)] hover:text-white transition"
-        >
-          Register as Vendor
-        </Link>
-
-        <div className="mt-6 text-center text-sm text-[var(--secondary)]">
-          Not a vendor?{" "}
-          <Link
-            href="/login"
-            className="text-[var(--accent)] font-semibold hover:underline"
-          >
-            User Login
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Want to become a partner?{" "}
+          <Link href="/vendor/register" className="font-medium text-blue-600 hover:text-blue-500">
+            Register Here
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );

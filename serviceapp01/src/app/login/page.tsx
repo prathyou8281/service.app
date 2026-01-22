@@ -1,62 +1,23 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-
-const API_BASE_URL = "http://localhost:4000/api";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
-  // ✅ Auto-redirect only if valid stored user
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("userData");
-      if (!storedUser) return;
-
-      const parsed = JSON.parse(storedUser);
-      if (parsed && parsed.email && parsed.role) {
-        // Redirect based on stored role
-        switch (parsed.role.toLowerCase()) {
-          case "admin":
-            router.replace("/admin/dashboard");
-            break;
-          case "vendor":
-            router.replace("/vendor/dashboard");
-            break;
-          case "technician":
-            router.replace("/technician/dashboard");
-            break;
-          default:
-            router.replace("/welcome");
-        }
-      } else {
-        localStorage.removeItem("userData");
-      }
-    } catch {
-      localStorage.removeItem("userData");
-    }
-  }, [router]);
-
-  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!email || !password) {
-      setError("⚠️ Please enter both email and password!");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      const res = await fetch("http://localhost:4000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -64,98 +25,84 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (!res.ok || !data.success) {
-        setError(data.message || "❌ Invalid email or password");
-        setLoading(false);
-        return;
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
       }
 
-      // ✅ Save verified user info
-      localStorage.setItem("userData", JSON.stringify(data.user));
+      // Store tokens
+      if (data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
+      }
+      if (data.user) {
+        localStorage.setItem("userData", JSON.stringify(data.user));
+        // Set cookie for middleware if needed
+        document.cookie = `userData=${JSON.stringify({
+          name: data.user.name,
+          role: "user",
+          status: data.user.status,
+        })}; path=/; max-age=86400; SameSite=Lax`;
+      }
 
-      // ✅ Redirect based on verified backend role
-      router.push(data.redirect || "/welcome");
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("⚠️ Server error, please try again later.");
+      router.push("/");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative bg-[var(--background)] text-[var(--foreground)] transition-colors duration-500">
-      <div className="card w-96 p-10 bg-white/60 dark:bg-white/10 border border-white/30 shadow-2xl backdrop-blur-2xl animate-fadeInUp">
-        <h1 className="text-4xl font-extrabold text-center mb-8 text-[var(--foreground)]">
-          Login
-        </h1>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+        <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">Login</h2>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
-            disabled={loading}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-gray-800"
-            disabled={loading}
-          />
+        {error && (
+          <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
 
-          <div className="text-right">
-            <Link
-              href="/forgetpassword"
-              className="text-sm text-[var(--accent)] hover:underline"
-            >
-              Forgot Password?
-            </Link>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="••••••••"
+            />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`btn-primary mt-4 w-full text-center ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+            className="w-full rounded-md bg-blue-600 py-2 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <div className="flex items-center my-6">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-4 text-sm opacity-70">OR</span>
-          <div className="flex-grow border-t border-gray-300"></div>
-        </div>
-
-        <p className="text-center text-sm mt-6 opacity-80">
+        <p className="mt-4 text-center text-sm text-gray-600">
           Don't have an account?{" "}
-          <Link href="/register" className="text-[var(--accent)] hover:underline">
+          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
             Register
           </Link>
         </p>
       </div>
-
-      {/* Animated Error Popup */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="absolute top-10 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg font-semibold"
-          >
-            {error}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
