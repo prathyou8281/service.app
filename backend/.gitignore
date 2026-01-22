@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# NestJS Build
+dist/
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+
+# IDEs
+.vscode/
+.idea/
