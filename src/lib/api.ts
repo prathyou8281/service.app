@@ -49,3 +49,27 @@ export const authApi = {
             body: JSON.stringify(data),
         }),
 };
+
+export const adminApi = {
+    getUsers: (role: string) =>
+        apiRequest(`/admins/users/${role}`, {
+            headers: typeof window !== 'undefined' ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` } : {}
+        }),
+    updateUser: (role: string, id: number, data: any) =>
+        apiRequest(`/admins/users/${role}/${id}`, {
+            method: 'PUT',
+            headers: typeof window !== 'undefined' ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` } : {},
+            body: JSON.stringify(data),
+        }),
+    deleteUser: (role: string, id: number) =>
+        apiRequest(`/admins/users/${role}/${id}`, {
+            method: 'DELETE',
+            headers: typeof window !== 'undefined' ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` } : {},
+        }),
+    updateStatus: (role: string, id: number, status: string) =>
+        apiRequest(`/admins/users/${role}/${id}/status`, {
+            method: 'PUT',
+            headers: typeof window !== 'undefined' ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` } : {},
+            body: JSON.stringify({ status }),
+        }),
+};

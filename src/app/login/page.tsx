@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Lock, ArrowRight, Loader2, ShieldCheck, Zap } from "lucide-react";
 
 const API_BASE_URL = "http://localhost:4000/api";
 
@@ -21,7 +22,8 @@ export default function LoginPage() {
 
       const parsed = JSON.parse(storedUser);
       if (parsed?.role) {
-        router.replace(`/${parsed.role}/dashboard`);
+        const role = parsed.role.toLowerCase();
+        router.replace(role === 'user' ? '/welcome' : `/${role}/dashboard`);
       }
     } catch {
       localStorage.removeItem("userData");
@@ -33,7 +35,7 @@ export default function LoginPage() {
     setError("");
 
     if (!email || !password) {
-      setError("Please enter both email and password");
+      setError("Please credentials are required.");
       return;
     }
 
@@ -49,140 +51,121 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data.message || "Invalid email or password");
+        setError(data.message || "Invalid authentication details.");
         return;
       }
 
-      localStorage.setItem("userData", JSON.stringify(data.user));
+      const userData = {
+        username: data.user.name,
+        email: data.user.email,
+        role: data.user.role || "user",
+      };
+
+      localStorage.setItem("userData", JSON.stringify(userData));
       localStorage.setItem("access_token", data.user.access_token);
 
-      // Set cookie for middleware/session
-      document.cookie = `userData=${JSON.stringify({
-        username: data.user.name,
-        role: data.user.role || "user",
-      })}; path=/; max-age=86400; SameSite=Lax`;
+      // Set cookie for middleware
+      document.cookie = `userData=${JSON.stringify(userData)}; path=/; max-age=86400; SameSite=Lax`;
 
-      // Check for pending booking redirected from explore
-      const pendingBooking = localStorage.getItem("pendingBooking");
-      if (pendingBooking) {
-        try {
-          const service = JSON.parse(pendingBooking);
-          localStorage.removeItem("pendingBooking");
-          router.push(`/book-service?serviceId=${service.id}`);
-          return;
-        } catch (e) {
-          localStorage.removeItem("pendingBooking");
-        }
-      }
-
-      router.push(data.redirect || "/welcome");
+      router.push(data.user.role === 'admin' ? '/admin/dashboard' : data.user.role === 'vendor' ? '/vendor/dashboard' : '/welcome');
     } catch {
-      setError("Server error. Please try again.");
+      setError("Infrastructure communication failure. Please retry.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-[var(--background)] overflow-hidden">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center p-4">
+      {/* Background Decor */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-indigo-500/5 rounded-full blur-[100px]" />
+      </div>
 
-      {/* Background glow */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-sky-400/30 rounded-full blur-3xl" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
-
-      {/* Card */}
       <motion.div
-        initial={{ opacity: 0, y: 40, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative w-full max-w-md p-10 rounded-3xl
-                   bg-white/70 dark:bg-white/10
-                   backdrop-blur-2xl border border-white/30
-                   shadow-2xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md relative z-10"
       >
-        <h1 className="text-4xl font-extrabold text-center mb-2">
-          Welcome Back
-        </h1>
-        <p className="text-center text-sm opacity-70 mb-8">
-          Login to continue
-        </p>
-
-        <form onSubmit={handleLogin} className="space-y-5">
-          <motion.input
-            whileFocus={{ scale: 1.02 }}
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300
-                       focus:ring-2 focus:ring-[var(--accent)]
-                       outline-none transition"
-          />
-
-          <motion.input
-            whileFocus={{ scale: 1.02 }}
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300
-                       focus:ring-2 focus:ring-[var(--accent)]
-                       outline-none transition"
-          />
-
-          <div className="text-right text-sm">
-            <Link
-              href="/forgetpassword"
-              className="text-[var(--accent)] hover:underline"
-            >
-              Forgot password?
-            </Link>
+        <div className="card p-10 shadow-2xl bg-white/80 backdrop-blur-xl">
+          <div className="flex flex-col items-center mb-10">
+            <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20 mb-6">
+              <Zap className="text-white w-8 h-8" />
+            </div>
+            <h1 className="text-3xl font-black tracking-tight text-center">Welcome Back</h1>
+            <p className="text-[var(--muted)] text-center font-bold text-xs uppercase tracking-widest mt-3">Access your professional dashboard</p>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.96 }}
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl
-                       bg-[var(--accent)] text-white
-                       font-semibold shadow-lg
-                       disabled:opacity-70"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </motion.button>
-        </form>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[var(--muted)] uppercase tracking-[0.2em] ml-1">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                <input
+                  type="email"
+                  required
+                  placeholder="name@enterprise.com"
+                  className="input pl-12 h-14"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
 
-        <div className="flex items-center my-6 opacity-60">
-          <div className="flex-grow border-t" />
-          <span className="mx-3 text-xs">OR</span>
-          <div className="flex-grow border-t" />
+            <div className="space-y-2">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-[10px] font-black text-[var(--muted)] uppercase tracking-[0.2em]">Password</label>
+                <Link href="/forgetpassword" tabIndex={-1} className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">Reset?</Link>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  className="input pl-12 h-14"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <button
+              disabled={loading}
+              type="submit"
+              className="btn-primary w-full h-14 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-blue-900/10"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Sign In <ArrowRight className="w-5 h-5" /></>}
+            </button>
+          </form>
+
+          <div className="mt-10 pt-10 border-t border-slate-100 text-center">
+            <p className="text-sm font-medium text-[var(--muted)]">
+              New to our platform?{" "}
+              <Link href="/register" className="text-blue-600 font-black hover:underline underline-offset-4">
+                Create Account
+              </Link>
+            </p>
+          </div>
         </div>
 
-        <p className="text-center text-sm opacity-80">
-          Don’t have an account?{" "}
-          <Link href="/register" className="text-[var(--accent)] font-semibold">
-            Register
-          </Link>
-        </p>
+        {/* Dynamic Error Message */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="mt-6 p-4 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 font-black uppercase tracking-widest text-center shadow-lg"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
-
-      {/* Error Toast */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -30, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -30, scale: 0.9 }}
-            transition={{ duration: 0.35 }}
-            className="absolute top-8 bg-red-500 text-white px-6 py-3 rounded-xl shadow-xl font-medium"
-          >
-            {error}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

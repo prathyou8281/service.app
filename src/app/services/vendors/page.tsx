@@ -62,14 +62,23 @@ function VendorListContent() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (serviceName) {
-            fetch(`http://localhost:4000/api/services/by-name/${encodeURIComponent(serviceName)}`)
+        const typeId = searchParams.get("typeId");
+        const url = typeId
+            ? `http://localhost:4000/api/services?service_type_id=${typeId}`
+            : `http://localhost:4000/api/services/by-name/${encodeURIComponent(serviceName || '')}`;
+
+        if (typeId || serviceName) {
+            setLoading(true);
+            fetch(url)
                 .then((res) => res.json())
-                .then((data) => setVendors(data))
+                .then((data) => {
+                    const rows = Array.isArray(data) ? data : (data.data || []);
+                    setVendors(rows);
+                })
                 .catch((err) => console.error("Error fetching vendors:", err))
                 .finally(() => setLoading(false));
         }
-    }, [serviceName]);
+    }, [serviceName, searchParams]);
 
     const handleSelectVendor = (service: any) => {
         const userData = localStorage.getItem("userData");
@@ -78,7 +87,7 @@ function VendorListContent() {
             router.push("/login?redirect=book-service");
             return;
         }
-        router.push(`/book-service?serviceId=${service.id}&serviceName=${encodeURIComponent(service.name)}&price=${service.price}&vendorName=${encodeURIComponent(service.vendor_name)}`);
+        router.push(`/book-service?serviceId=${service.id}&serviceName=${encodeURIComponent(service.name)}&price=${service.price}&vendorName=${encodeURIComponent(service.vendor_name)}&vendorId=${service.vendor_id}`);
     };
 
     return (

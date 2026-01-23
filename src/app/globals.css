@@ -1,114 +1,126 @@
 @import "tailwindcss";
 
-/* 🌟 Professional Modern Theme - Gradient Backgrounds, Clean Text, Smooth Animations */
-:root {
-  /* Background gradients */
-  --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --card-hover-bg: rgba(255, 255, 255, 0.95);
+/* 🌟 Vibrant Premium Theme - MNC Standard with Rich Aesthetics */
+@theme {
+  --color-primary: #0f172a;
+  --color-secondary: #4b5563;
+  --color-accent: #0284c7;
+  --color-accent-hover: #0369a1;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
 
-  /* Text colors */
-  --foreground: #1f2937;
-  --secondary-text: #4b5563;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 
-  /* Accent colors */
-  --accent: #00cfff;
-  --accent-hover: #00b3e6;
-
-  /* Borders & shadows */
-  --border-color: rgba(0, 204, 255, 0.25);
-  --shadow-color: rgba(0, 204, 255, 0.15);
-}
-
-/* Tailwind inline theme bindings */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
 }
 
 /* 🌍 Base styles */
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
+@layer base {
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
-  @apply antialiased transition-colors duration-500;
-}
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    @apply bg-slate-50 text-slate-900;
+  }
 
-/* Links */
-a {
-  color: var(--accent);
-  transition: color 0.3s ease;
-}
-
-a:hover {
-  color: var(--accent-hover);
+  body {
+    background: radial-gradient(circle at top right, #f0f9ff 0%, #f8fafc 100%);
+    @apply antialiased transition-colors duration-500;
+  }
 }
 
 /* ===============================
-   BUTTONS
+   PREMIUM COMPONENTS
 ================================ */
-.btn-primary {
-  @apply text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition transform hover:scale-105;
-  background: var(--accent);
-  box-shadow: 0 4px 12px var(--shadow-color);
-}
 
-.btn-primary:hover {
-  background: var(--accent-hover);
-}
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-8 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-widest text-white shadow-xl shadow-blue-500/20 transition-all duration-300 active:scale-95;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  }
 
-.btn-secondary {
-  @apply px-6 py-3 rounded-xl font-semibold shadow-lg transition transform hover:scale-105;
-  background: #ffffff;
-  color: var(--foreground);
-  border: 2px solid var(--accent);
-  box-shadow: 0 4px 12px var(--shadow-color);
-}
+  .btn-primary:hover {
+    @apply shadow-2xl shadow-blue-500/40 -translate-y-0.5;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  }
 
-.btn-secondary:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  color: #ffffff;
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-8 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-widest text-slate-700 bg-white border border-slate-200 shadow-lg shadow-slate-200/50 transition-all duration-300 active:scale-95;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-slate-50 border-slate-300 -translate-y-0.5 shadow-xl;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold text-sm text-white transition-all duration-300 active:scale-95;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  }
+
+  .card {
+    @apply bg-white border border-slate-100 rounded-[2rem] shadow-xl shadow-slate-200/50 overflow-hidden transition-all duration-300;
+  }
+
+  .card-hover:hover {
+    @apply -translate-y-2 shadow-2xl shadow-blue-500/10 border-blue-100;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-2xl border border-white shadow-2xl shadow-slate-200/40;
+  }
+
+  .input {
+    @apply w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none transition-all duration-300 font-medium;
+  }
+
+  .input:focus {
+    @apply bg-white border-blue-500 ring-4 ring-blue-500/10 shadow-lg shadow-blue-500/5;
+  }
+
+  /* 3D Service Card (Requested by User) */
+  .service-card {
+    @apply w-[160px] h-[200px] bg-white rounded-3xl p-5 flex flex-col items-center justify-center shadow-xl border border-slate-50 transition-all duration-500 cursor-pointer;
+    transform-style: preserve-3d;
+  }
+
+  .service-card:hover {
+    @apply border-blue-200 -translate-y-3;
+    transform: rotateY(10deg) rotateX(10deg);
+    box-shadow: 0 40px 70px -15px rgba(2, 132, 199, 0.25);
+  }
+
+  .service-card p {
+    @apply mt-4 text-xs font-black uppercase tracking-widest text-slate-800 text-center;
+  }
+
+  /* Navigation Item */
+  .nav-link {
+    @apply text-sm font-bold text-slate-500 hover:text-blue-600 transition-all duration-300 relative py-1;
+  }
+
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
+  }
 }
 
 /* ===============================
-   CARDS (GENERAL)
+   ANIMATIONS & EFFECTS
 ================================ */
-.card {
-  background: var(--card-bg);
-  backdrop-filter: blur(14px);
-  border-radius: 1rem;
-  box-shadow: 0 6px 20px var(--shadow-color);
-  border: 2px solid var(--border-color);
-  transition:
-    transform 0.3s ease,
-    background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
-}
 
-.card:hover {
-  transform: scale(1.03);
-  background: var(--card-hover-bg);
-  border-color: var(--accent);
-  box-shadow: 0 12px 28px rgba(0, 204, 255, 0.25);
-}
-
-/* ===============================
-   ANIMATIONS
-================================ */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(30px);
   }
 
   to {
@@ -118,184 +130,38 @@ a:hover {
 }
 
 .animate-fadeInUp {
-  animation: fadeInUp 0.8s ease-out forwards;
+  animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-@keyframes pulseAccent {
+@keyframes float {
 
   0%,
   100% {
-    transform: scale(1);
-    opacity: 1;
+    transform: translateY(0);
   }
 
   50% {
-    transform: scale(1.05);
-    opacity: 0.85;
+    transform: translateY(-10px);
   }
 }
 
-.animate-pulseAccent {
-  animation: pulseAccent 1.2s infinite;
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
 
-/* ===============================
-   TEXT UTILITIES
-================================ */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-.text-accent {
-  color: var(--foreground);
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
 }
 
-.text-secondary {
-  color: var(--secondary-text);
+::-webkit-scrollbar-track {
+  @apply bg-slate-50;
 }
 
-/* ===============================
-   INPUTS / FORMS
-================================ */
-input,
-textarea,
-select {
-  @apply border rounded-xl p-3 outline-none transition;
-  border-color: #ddd;
-  background: #ffffff;
-  color: var(--foreground);
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full border-4 border-slate-50;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 10px rgba(0, 204, 255, 0.3);
-}
-
-/* ===============================
-   NAVBAR
-================================ */
-.navbar {
-  background: linear-gradient(90deg, #ffffff 0%, #f0f0f5 100%);
-  border-bottom: 2px solid var(--accent);
-  @apply shadow-md transition-colors duration-500;
-}
-
-.navbar a {
-  color: var(--foreground);
-}
-
-.navbar a:hover {
-  color: var(--accent-hover);
-}
-
-/* ===============================
-   FOOTER
-================================ */
-footer {
-  background: linear-gradient(90deg, #f0f0f5 0%, #ffffff 100%);
-  color: var(--secondary-text);
-  border-top: 2px solid var(--accent);
-  padding: 2rem;
-  text-align: center;
-}
-
-/* ===============================
-   TOAST / NOTIFICATIONS
-================================ */
-.toast {
-  background: var(--accent);
-  color: #ffffff;
-  padding: 1rem 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 6px 20px var(--shadow-color);
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-/* ===============================
-   HOVER UTILITIES
-================================ */
-.hover-accent:hover {
-  color: var(--accent-hover);
-}
-
-.hover-bg-accent:hover {
-  background: var(--accent-hover);
-  color: #ffffff;
-}
-
-/* ======================================================
-   🔥 3D ANIMATED SERVICE CARDS (LOGIN / HOME SIDES)
-====================================================== */
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-.service-card {
-  width: 150px;
-  height: 190px;
-  background: var(--card-bg);
-  border-radius: 18px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(16px);
-  border: 2px solid var(--border-color);
-  box-shadow:
-    0 25px 45px rgba(0, 0, 0, 0.15),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-  transform-style: preserve-3d;
-  animation: float3d 6s ease-in-out infinite;
-  transition:
-    transform 0.4s ease,
-    box-shadow 0.4s ease,
-    border-color 0.4s ease;
-}
-
-.service-card:hover {
-  transform: rotateY(15deg) rotateX(10deg) translateY(-14px);
-  border-color: var(--accent);
-  box-shadow: 0 35px 65px rgba(0, 204, 255, 0.35);
-}
-
-.service-card p {
-  margin-top: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  color: var(--foreground);
-}
-
-/* Floating 3D motion */
-@keyframes float3d {
-  0% {
-    transform: rotateY(-10deg) translateY(0);
-  }
-
-  50% {
-    transform: rotateY(10deg) translateY(-14px);
-  }
-
-  100% {
-    transform: rotateY(-10deg) translateY(0);
-  }
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-300;
 }

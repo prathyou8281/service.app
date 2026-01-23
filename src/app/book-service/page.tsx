@@ -25,6 +25,7 @@ function BookingContent() {
     const serviceNameInitial = searchParams.get("serviceName");
     const priceInitial = searchParams.get("price");
     const vendorName = searchParams.get("vendorName");
+    const vendorId = searchParams.get("vendorId");
 
     const [user, setUser] = useState<any>(null);
     const [serviceDetails, setServiceDetails] = useState<any>(null);
@@ -75,7 +76,8 @@ function BookingContent() {
 
         try {
             const token = localStorage.getItem("access_token");
-            const res = await fetch("http://localhost:4000/api/services/book", {
+            const totalAmount = Number(displayPrice) + 99;
+            const res = await fetch("http://localhost:4000/api/orders", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -83,7 +85,9 @@ function BookingContent() {
                 },
                 body: JSON.stringify({
                     service_id: Number(serviceId),
-                    description: `Address: ${form.address}, ${form.city}, ${form.zip}. Details: ${form.description}`
+                    vendor_id: Number(vendorId || serviceDetails?.vendor_id),
+                    user_description: `Address: ${form.address}, ${form.city}, ${form.zip}. Details: ${form.description}`,
+                    total_amount: totalAmount
                 }),
             });
 

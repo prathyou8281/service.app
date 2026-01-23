@@ -3,108 +3,85 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const userData = request.cookies.get("userData")?.value;
+  const userDataCookie = request.cookies.get("userData")?.value;
 
-  /* -------------------------------------------------
-   * 1️⃣ PUBLIC ROUTES (ALWAYS ALLOW)
-   * ------------------------------------------------- */
-  if (
+  // Define public routes
+  const isPublicRoute =
     pathname === "/" ||
     pathname.startsWith("/welcome") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
     pathname.startsWith("/user/login") ||
     pathname.startsWith("/user/register") ||
     pathname.startsWith("/vendor/login") ||
     pathname.startsWith("/vendor/register") ||
     pathname.startsWith("/admin/login") ||
-    pathname.startsWith("/technician/login")
-    
-  ) {
+    pathname.startsWith("/technician/login") ||
+    pathname.startsWith("/technician/register") ||
+    pathname.startsWith("/about") ||
+    pathname.startsWith("/contact") ||
+    pathname.startsWith("/services") ||
+    pathname.startsWith("/explore") ||
+    pathname.includes("favicon.ico") ||
+    pathname.startsWith("/_next");
+
+  if (isPublicRoute) {
     return NextResponse.next();
   }
 
-  /* -------------------------------------------------
-   * 2️⃣ DASHBOARD CHECKS
-   * ------------------------------------------------- */
-  const isVendorRoute = pathname.startsWith("/vendor");
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isTechnicianRoute = pathname.startsWith("/technician");
-
-  /* -------------------------------------------------
-   * 3️⃣ NOT LOGGED IN
-   * ------------------------------------------------- */
-  if (!userData) {
-    if (isVendorRoute) {
-      return NextResponse.redirect(
-        new URL("/vendor/login", request.url)
-      );
+  // Check for session
+  if (!userDataCookie) {
+    // Determine where to redirect based on the route they tried to access
+    if (pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
-
-    if (isAdminRoute) {
-      return NextResponse.redirect(
-        new URL("/admin/login", request.url)
-      );
+    if (pathname.startsWith("/vendor")) {
+      return NextResponse.redirect(new URL("/vendor/login", request.url));
     }
-
-    if (isTechnicianRoute) {
-      return NextResponse.redirect(
-        new URL("/technician/login", request.url)
-      );
+    if (pathname.startsWith("/technician")) {
+      return NextResponse.redirect(new URL("/technician/login", request.url));
     }
-
-    return NextResponse.redirect(
-      new URL("/user/login", request.url)
-    );
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  /* -------------------------------------------------
-   * 4️⃣ PARSE COOKIE SAFELY
-   * ------------------------------------------------- */
+  // Parse user data safely
   let user: any;
   try {
-    user = JSON.parse(userData);
-  } catch {
-    // corrupted cookie → force logout
-    return NextResponse.redirect(
-      new URL("/user/login", request.url)
-    );
+    user = JSON.parse(userDataCookie);
+  } catch (e) {
+    // Corrupted cookie, clear it and redirect to login
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.delete("userData");
+    return response;
   }
 
-  const role = user.role;
+  const role = user.role?.toLowerCase();
 
-  /* -------------------------------------------------
-   * 5️⃣ ROLE-BASED ACCESS
-   * ------------------------------------------------- */
-  if (isVendorRoute && role !== "vendor") {
-    return NextResponse.redirect(
-      new URL("/vendor/login", request.url)
-    );
+  // Role-based protection
+  if (pathname.startsWith("/admin") && role !== "admin") {
+    return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
-  if (isAdminRoute && role !== "admin") {
-    return NextResponse.redirect(
-      new URL("/admin/login", request.url)
-    );
+  if (pathname.startsWith("/vendor") && role !== "vendor") {
+    return NextResponse.redirect(new URL("/vendor/login", request.url));
   }
 
-  if (isTechnicianRoute && role !== "technician") {
-    return NextResponse.redirect(
-      new URL("/technician/login", request.url)
-    );
+  if (pathname.startsWith("/technician") && role !== "technician") {
+    return NextResponse.redirect(new URL("/technician/login", request.url));
   }
 
-  /* -------------------------------------------------
-   * 6️⃣ ALLOW REQUEST
-   * ------------------------------------------------- */
   return NextResponse.next();
 }
 
-/* -------------------------------------------------
- * 7️⃣ MATCHER (KEEP IT BROAD)
- * ------------------------------------------------- */
 export const config = {
   matcher: [
-    "/vendor/:path*",
-    "/admin/:path*",
-    "/technician/:path*",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };
