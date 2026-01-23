@@ -16,7 +16,7 @@ export default function VendorLoginPage() {
 
     try {
       const res = await fetch(
-        "http://localhost:4000/api/vendors/login",
+        "http://localhost:4000/api/auth/vendor/login",
         {
           method: "POST",
           headers: {
@@ -33,23 +33,24 @@ export default function VendorLoginPage() {
       }
 
       // ✅ STORE LOGIN DATA (THIS FIXES DASHBOARD REDIRECT)
-      localStorage.setItem("access_token", data.vendor.access_token);
+      localStorage.setItem("access_token", data.user.access_token);
       localStorage.setItem(
         "userData",
         JSON.stringify({
-          username: data.vendor.name,
+          id: data.user.id,
+          username: data.user.name,
           role: "vendor",
         })
       );
 
       // ✅ SET COOKIE FOR MIDDLEWARE (REQUIRED FOR REDIRECT TO WORK)
       document.cookie = `userData=${JSON.stringify({
-        username: data.vendor.name,
+        username: data.user.name,
         role: "vendor",
       })}; path=/; max-age=86400; SameSite=Lax`;
 
       // ✅ HARD REDIRECT (NO ROUTER, NO MIDDLEWARE)
-      window.location.href = "/vendor/dashboard";
+      window.location.href = data.redirect || "/vendor/dashboard";
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {

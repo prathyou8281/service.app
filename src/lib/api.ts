@@ -28,4 +28,24 @@ export const authApi = {
             method: 'POST',
             body: JSON.stringify(credentials),
         }),
+    vendorLogin: (credentials: any) =>
+        apiRequest('/auth/vendor/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+        }),
+    technicianLogin: (credentials: any) =>
+        apiRequest('/auth/technician/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+        }),
+    userLogin: (credentials: any) =>
+        apiRequest('/auth/user/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+        }),
+    userRegister: (data: any) =>
+        apiRequest('/auth/user/register', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
 };

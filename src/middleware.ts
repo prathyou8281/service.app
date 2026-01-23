@@ -16,8 +16,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/vendor/login") ||
     pathname.startsWith("/vendor/register") ||
     pathname.startsWith("/admin/login") ||
-    pathname.startsWith("/technician/login") ||
-    pathname.startsWith("/technician/register")
+    pathname.startsWith("/technician/login")
+    
   ) {
     return NextResponse.next();
   }
@@ -69,7 +69,7 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  const role = user.role.toLowerCase();
+  const role = user.role;
 
   /* -------------------------------------------------
    * 5️⃣ ROLE-BASED ACCESS
