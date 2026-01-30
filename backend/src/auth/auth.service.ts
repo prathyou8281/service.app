@@ -27,6 +27,53 @@ export class AuthService {
     private jwtService: JwtService,
   ) { }
 
+  private otps = new Map<string, { code: string, expires: number }>();
+
+  async requestOtp(email: string) {
+    const tableMap = ['admins', 'vendors', 'technicians', 'users'];
+    let exists = false;
+
+    for (const table of tableMap) {
+      const rows = await this.databaseService.query<any[]>(
+        `SELECT id FROM ${table} WHERE email = ? LIMIT 1`,
+        [email]
+      );
+      if (rows.length > 0) {
+        exists = true;
+        break;
+      }
+    }
+
+    if (!exists) throw new BadRequestException('Account not found with this email identifier');
+
+    // Generate 6-digit OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    this.otps.set(email, {
+      code: otpCode,
+      expires: Date.now() + 10 * 60 * 1000 // 10 minutes
+    });
+
+    console.log(`[IDENTITY SYSTEM] OTP for ${email}: ${otpCode}`);
+    return { success: true, message: 'Recovery code dispatched to terminal' };
+  }
+
+  async verifyOtp(email: string, code: string) {
+    const record = this.otps.get(email);
+    if (!record || record.code !== code || record.expires < Date.now()) {
+      throw new BadRequestException('Invalid or expired verification code');
+    }
+    return { success: true, message: 'Identity verified' };
+  }
+
+  async resetPasswordWithOtp(email: string, otp: string, newPass: string) {
+    await this.verifyOtp(email, otp);
+
+    // Clear OTP after use
+    this.otps.delete(email);
+
+    return this.resetPassword(email, newPass);
+  }
+
   private async generateToken(user: any, role: Role) {
     const payload = {
       id: user.id,

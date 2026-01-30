@@ -35,11 +35,24 @@ export class AuthController {
     );
   }
 
+  @Post('request-otp')
+  async requestOtp(@Body('email') email: string) {
+    if (!email) throw new BadRequestException('Email is required');
+    return this.authService.requestOtp(email);
+  }
+
+  @Post('verify-otp')
+  async verifyOtp(@Body() body: any) {
+    const { email, otp } = body;
+    if (!email || !otp) throw new BadRequestException('Email and OTP are required');
+    return this.authService.verifyOtp(email, otp);
+  }
+
   @Post('reset-password')
   async resetPassword(@Body() body: any) {
-    const { email, newPassword } = body;
-    if (!email || !newPassword) throw new BadRequestException('Email and new password are required');
-    return this.authService.resetPassword(email, newPassword);
+    const { email, otp, newPassword } = body;
+    if (!email || !otp || !newPassword) throw new BadRequestException('Email, OTP, and new password are required');
+    return this.authService.resetPasswordWithOtp(email, otp, newPassword);
   }
 
   @Post('user/register')
