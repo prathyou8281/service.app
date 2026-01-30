@@ -4,7 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, Loader2, Zap, ShieldCheck } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2, Zap, ShieldCheck, ChevronLeft } from "lucide-react";
 
 const API_BASE_URL = "http://localhost:4000/api";
 
@@ -77,64 +77,65 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 relative overflow-hidden font-sans">
-      {/* 🔹 Premium Background Aesthetics */}
+    <div className="min-h-screen bg-[#05070a] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* 🔹 High-End Corporate Aura Background */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[160px] animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[160px] animate-pulse" style={{ animationDelay: '3s' }} />
 
-        {/* Subtle Grid Pattern */}
-        <div className="absolute inset-0 opacity-[0.03]"
+        {/* Pro Matrix Grid */}
+        <div className="absolute inset-0 opacity-[0.05]"
           style={{
-            backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)',
-            backgroundSize: '40px 40px'
+            backgroundImage: 'linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px)',
+            backgroundSize: '60px 60px'
           }}
         />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-[480px] relative z-10"
       >
-        <div className="bg-white/90 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-white p-10 md:p-14">
+        <div className="bg-[#0f172a]/80 backdrop-blur-3xl rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/5 p-10 md:p-14 overflow-hidden relative">
+
+          {/* Internal Glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
 
           {/* Header Section */}
           <div className="flex flex-col items-center mb-12">
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/30 mb-8 group overflow-hidden relative"
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[2rem] flex items-center justify-center shadow-[0_20px_40px_rgba(59,130,246,0.3)] mb-8 cursor-pointer relative group"
             >
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-700 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <Zap className="text-white w-10 h-10 relative z-10 drop-shadow-lg" />
+              <Zap className="text-white w-10 h-10 relative z-10" />
+              <div className="absolute inset-0 rounded-[2rem] bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
             </motion.div>
 
-            <h1 className="text-4xl font-extrabold text-[#0f172a] tracking-tight text-center mb-2">
+            <h1 className="text-4xl font-black text-white tracking-tighter text-center mb-2">
               Welcome Back
             </h1>
-            <p className="text-slate-400 text-center font-bold text-[10px] uppercase tracking-[0.4em] mt-2">
+            <p className="text-slate-400 text-center font-bold text-[10px] uppercase tracking-[0.5em] mt-2 opacity-60">
               Access your professional dashboard
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-8">
             {/* Email Field */}
-            <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-2">
+            <div className="space-y-4">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">
                 Email Address
               </label>
               <div className="relative group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors">
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
                   type="email"
                   required
                   placeholder="name@enterprise.com"
-                  className="w-full h-16 pl-14 pr-6 bg-slate-50/50 border border-slate-100 rounded-[1.25rem] text-sm font-semibold text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
+                  className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-blue-500/30 transition-all outline-none shadow-inner"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
@@ -143,24 +144,24 @@ export default function LoginPage() {
             </div>
 
             {/* Password Field */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center px-1 font-sans">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center px-1">
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">
                   Password
                 </label>
-                <Link href="/forgetpassword" tabIndex={-1} className="text-[11px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700 hover:underline underline-offset-4 decoration-2">
+                <Link href="/forgetpassword" tabIndex={-1} className="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] hover:text-blue-300 transition-colors">
                   Reset?
                 </Link>
               </div>
               <div className="relative group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors">
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
                   type="password"
                   required
                   placeholder="••••••••"
-                  className="w-full h-16 pl-14 pr-6 bg-slate-50/50 border border-slate-100 rounded-[1.25rem] text-sm font-semibold text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
+                  className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-blue-500/30 transition-all outline-none shadow-inner"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
@@ -172,24 +173,25 @@ export default function LoginPage() {
             <button
               disabled={loading}
               type="submit"
-              className="w-full h-16 bg-[#0f172a] hover:bg-black text-white rounded-[1.25rem] text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-10px_rgba(15,23,42,0.3)] disabled:opacity-70 group"
+              className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.3)] disabled:opacity-70 group relative overflow-hidden"
             >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
+                <Loader2 className="w-6 h-6 animate-spin text-white" />
               ) : (
                 <>
                   Sign In
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
                 </>
               )}
             </button>
           </form>
 
           {/* Footer */}
-          <div className="mt-12 pt-10 border-t border-slate-50 text-center">
-            <p className="text-sm font-bold text-slate-400">
+          <div className="mt-12 pt-10 border-t border-white/5 text-center">
+            <p className="text-sm font-bold text-slate-500">
               New to our platform?{" "}
-              <Link href="/register" className="text-blue-600 hover:text-blue-700 hover:underline underline-offset-4 decoration-2">
+              <Link href="/register" className="text-blue-400 hover:text-blue-300 transition-colors">
                 Create Account
               </Link>
             </p>
@@ -200,21 +202,21 @@ export default function LoginPage() {
         <AnimatePresence>
           {error && (
             <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="mt-6 p-5 bg-red-50 border border-red-100 rounded-2xl text-[10px] text-red-600 font-extrabold uppercase tracking-widest text-center shadow-lg flex items-center justify-center gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mt-6 p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-[10px] text-rose-400 font-extrabold uppercase tracking-[0.3em] text-center shadow-lg flex items-center justify-center gap-3"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.8)]" />
               {error}
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Security Trust Mark */}
-        <div className="mt-10 flex justify-center items-center gap-2 opacity-30 select-none grayscale">
-          <ShieldCheck className="w-4 h-4" />
-          <span className="text-[9px] font-black uppercase tracking-[0.3em]">End-to-End Enterprise Security</span>
+        <div className="mt-12 flex justify-center items-center gap-3 opacity-20">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white">Secure Encrypted Authentication</span>
         </div>
       </motion.div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Wrench, Mail, Lock, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
+import { Wrench, Mail, Lock, ArrowRight, ShieldCheck, Loader2, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function TechnicianLoginPage() {
@@ -58,56 +58,79 @@ export default function TechnicianLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
-            {/* Background Aesthetics */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute top-1/4 -left-24 w-96 h-96 bg-emerald-500/5 rounded-full blur-[100px]" />
-                <div className="absolute bottom-1/4 -right-24 w-96 h-96 bg-teal-500/5 rounded-full blur-[100px]" />
+        <div className="min-h-screen bg-[#05070a] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+            {/* 🔹 High-End Corporate Aura Background */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-emerald-600/10 rounded-full blur-[160px] animate-pulse" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-teal-600/10 rounded-full blur-[160px] animate-pulse" style={{ animationDelay: '3s' }} />
+
+                {/* Pro Matrix Grid */}
+                <div className="absolute inset-0 opacity-[0.05]"
+                    style={{
+                        backgroundImage: 'linear-gradient(#10b981 1px, transparent 1px), linear-gradient(90deg, #10b981 1px, transparent 1px)',
+                        backgroundSize: '60px 60px'
+                    }}
+                />
             </div>
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-md relative z-10"
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-[480px] relative z-10"
             >
-                <div className="card p-10 bg-white/80 backdrop-blur-xl border border-slate-100 shadow-2xl">
-                    <div className="flex flex-col items-center mb-10">
-                        <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-600/20 mb-6">
-                            <Wrench className="text-white w-7 h-7" />
-                        </div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight text-center">Field Access</h1>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-3">Technician Operation Node</p>
+                <div className="bg-[#0f172a]/80 backdrop-blur-3xl rounded-[3.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] border border-white/5 p-10 md:p-14 overflow-hidden relative">
+
+                    {/* Header Section */}
+                    <div className="flex flex-col items-center mb-12">
+                        <motion.div
+                            whileHover={{ scale: 1.05, rotate: 10 }}
+                            className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl flex items-center justify-center shadow-[0_20px_40px_rgba(16,185,129,0.3)] mb-8 cursor-pointer relative group"
+                        >
+                            <Wrench className="text-white w-9 h-9 relative z-10" />
+                        </motion.div>
+
+                        <h1 className="text-4xl font-black text-white tracking-tighter text-center mb-2">
+                            Field Access
+                        </h1>
+                        <p className="text-slate-400 text-center font-bold text-[10px] uppercase tracking-[0.5em] mt-3 opacity-60">
+                            Technician Operation Node
+                        </p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Email</label>
+                    <form onSubmit={handleLogin} className="space-y-8">
+                        <div className="space-y-4">
+                            <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Assigned Email</label>
                             <div className="relative group">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-emerald-600 transition-colors" />
+                                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
+                                    <Mail className="w-5 h-5" />
+                                </div>
                                 <input
                                     type="email"
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="input !h-14 !pl-12 !bg-slate-50 focus:!bg-white"
+                                    className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-emerald-500/30 transition-all outline-none"
                                     placeholder="name@company.com"
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                             <div className="flex justify-between items-center px-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Access Password</label>
-                                <Link href="/forgetpassword" tabIndex={-1} className="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:underline">Reset?</Link>
+                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">Access Password</label>
+                                <Link href="/forgetpassword" tabIndex={-1} className="text-[11px] font-black text-emerald-400 uppercase tracking-[0.2em] hover:text-emerald-300 transition-colors">Reset?</Link>
                             </div>
                             <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-emerald-600 transition-colors" />
+                                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
+                                    <Lock className="w-5 h-5" />
+                                </div>
                                 <input
                                     type="password"
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="input !h-14 !pl-12 !bg-slate-50 focus:!bg-white"
+                                    className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-emerald-500/30 transition-all outline-none"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -116,13 +139,14 @@ export default function TechnicianLoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-slate-900 hover:bg-black py-4 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 h-16"
+                            className="w-full h-16 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(16,185,129,0.3)] disabled:opacity-70 group relative overflow-hidden"
                         >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                             {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <Loader2 className="w-6 h-6 animate-spin text-white" />
                             ) : (
                                 <>
-                                    Connect to Terminal <ArrowRight className="w-4 h-4" />
+                                    Connect Terminal <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
                                 </>
                             )}
                         </button>
@@ -134,23 +158,23 @@ export default function TechnicianLoginPage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
-                                className="mt-8 p-4 bg-red-50 border border-red-100 rounded-2xl text-[10px] text-red-600 font-black uppercase tracking-widest text-center"
+                                className="mt-6 p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-[10px] text-rose-400 font-extrabold uppercase tracking-[0.3em] text-center shadow-lg"
                             >
                                 {error}
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    <div className="mt-10 pt-10 border-t border-slate-50 text-center">
-                        <p className="text-xs font-bold text-slate-400">
-                            Unauthorized access is logged. Managed by Corporate Security.
+                    <div className="mt-12 pt-10 border-t border-white/5 text-center">
+                        <p className="text-[10px] font-black text-slate-500 tracking-[0.3em] uppercase opacity-40">
+                            Corporate field access node
                         </p>
                     </div>
                 </div>
 
-                <div className="mt-8 flex justify-center items-center gap-2 text-slate-300">
-                    <ShieldCheck className="w-4 h-4" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.4em]">Field Secure Encrypted Access</span>
+                <div className="mt-12 flex justify-center items-center gap-3 opacity-20">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white">Technician Secure Link</span>
                 </div>
             </motion.div>
         </div>

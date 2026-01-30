@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, ArrowLeft, Loader2, Send, CheckCircle2 } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, Send, CheckCircle2, ShieldCheck, Zap } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -24,8 +24,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      // Simulation of forgot password request
-      // In a real app, you would send a request to your backend
+      // Professional API Simulation
       await new Promise(resolve => setTimeout(resolve, 2000));
       setSuccess(true);
     } catch (err) {
@@ -36,34 +35,54 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 selection:bg-blue-500/20">
+    <div className="min-h-screen bg-[#05070a] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* 🔹 High-End Corporate Aura Background (Unified with Login) */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[160px] animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[160px] animate-pulse" style={{ animationDelay: '3s' }} />
+
+        {/* Pro Matrix Grid */}
+        <div className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: 'linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px)',
+            backgroundSize: '60px 60px'
+          }}
+        />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-[480px] relative z-10"
       >
-        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-blue-500/5 p-10 md:p-12 border border-slate-100">
+        <div className="bg-[#0f172a]/80 backdrop-blur-3xl rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/5 p-10 md:p-14 overflow-hidden relative">
 
-          <div className="mb-10">
+          {/* Internal Glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
+
+          <div className="mb-12">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-colors mb-8 group"
+              className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-blue-400 transition-colors mb-10 group"
             >
-              <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" /> Back to Sign In
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Sign In
             </Link>
 
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-3">Forgot Password?</h1>
-            <p className="text-slate-500 text-sm font-medium leading-relaxed">
-              No worries! Enter your email address and we'll send you a link to reset your security credentials.
+            <h1 className="text-4xl font-black text-white tracking-tighter leading-tight mb-4">Account Recovery</h1>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">
+              Dispatch a secure recovery link to your registered terminal to restore access.
             </p>
           </div>
 
           {!success ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Registered Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Registered Email</label>
+                <div className="relative group">
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors">
+                    <Mail className="w-5 h-5" />
+                  </div>
                   <input
                     type="email"
                     required
@@ -71,13 +90,13 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
-                    className="w-full pl-14 pr-6 py-5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none placeholder:text-slate-300"
+                    className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-blue-500/30 transition-all outline-none shadow-inner"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-xs font-bold text-red-600 uppercase tracking-widest text-center">
+                <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-[10px] text-rose-400 font-extrabold uppercase tracking-[0.3em] text-center shadow-lg">
                   {error}
                 </div>
               )}
@@ -85,9 +104,10 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-900/10 disabled:opacity-50"
+                className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.3)] disabled:opacity-70 group relative overflow-hidden"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Send Reset Link <Send className="w-4 h-4" /></>}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                {loading ? <Loader2 className="w-6 h-6 animate-spin text-white" /> : <>Request Link <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>}
               </button>
             </form>
           ) : (
@@ -96,27 +116,33 @@ export default function ForgotPasswordPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-6"
             >
-              <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center text-emerald-600 mx-auto mb-8">
-                <CheckCircle2 className="w-10 h-10" />
+              <div className="w-24 h-24 bg-emerald-500/10 border border-emerald-500/20 rounded-[2.5rem] flex items-center justify-center text-emerald-400 mx-auto mb-10 shadow-[0_20px_40px_rgba(16,185,129,0.1)]">
+                <CheckCircle2 className="w-12 h-12" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-4">Check Your Inbox</h3>
-              <p className="text-slate-500 text-sm font-medium mb-10 leading-relaxed">
-                We've dispatched a recovery link to <span className="text-slate-900 font-bold">{email}</span>. Please follow the instructions to restore your access.
+              <h3 className="text-2xl font-black text-white tracking-tight mb-4">Link Dispatched</h3>
+              <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-12 opacity-80">
+                We've synchronized with <span className="text-blue-400">{email}</span>. Please verify your terminal to restore security credentials.
               </p>
               <button
                 onClick={() => router.push("/login")}
-                className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-700 transition-all"
+                className="w-full h-16 bg-white/[0.03] hover:bg-white/[0.08] text-white border border-white/5 rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] transition-all"
               >
                 Return to Login
               </button>
             </motion.div>
           )}
 
-          <div className="mt-12 pt-10 border-t border-slate-50 text-center">
-            <p className="text-xs font-bold text-slate-400 italic">
-              Don't have an account? <Link href="/register" className="text-blue-600 hover:underline">Register now</Link>
+          <div className="mt-12 pt-10 border-t border-white/5 text-center">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
+              Security Issue? <Link href="/register" className="text-blue-400 hover:text-blue-300">New Account</Link>
             </p>
           </div>
+        </div>
+
+        {/* Security Trust Mark */}
+        <div className="mt-12 flex justify-center items-center gap-3 opacity-20">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white">Advanced Identity Protection</span>
         </div>
       </motion.div>
     </div>
