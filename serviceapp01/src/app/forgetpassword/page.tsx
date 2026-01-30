@@ -4,19 +4,36 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, ArrowLeft, Loader2, Send, CheckCircle2, ShieldCheck, Zap } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, Key, CheckCircle2, ShieldCheck, Zap, Lock, UserCircle } from "lucide-react";
 
 export default function ForgotPasswordPage() {
+  const [step, setStep] = useState(1); // 1: Email, 2: New Password
   const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleNextStep = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      setError("Email is required.");
+      setError("Please provide your registered email identifier.");
+      return;
+    }
+    setError("");
+    setStep(2);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError("Passcodes do not synchronize. Please verify.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError("Security requirement: Minimum 6 characters.");
       return;
     }
 
@@ -24,17 +41,18 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:4000/api/auth/forgot-password", {
+      const res = await fetch("http://localhost:4000/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, newPassword })
       });
+
+      const data = await res.json();
 
       if (res.ok) {
         setSuccess(true);
       } else {
-        const data = await res.json();
-        setError(data.message || "Unable to process request.");
+        setError(data.message || "Failed to restore identity.");
       }
     } catch (err) {
       setError("Infrastructure communication failure.");
@@ -71,86 +89,153 @@ export default function ForgotPasswordPage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
 
           <div className="mb-12">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-blue-400 transition-colors mb-10 group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Sign In
-            </Link>
+            {!success && (
+              <button
+                onClick={() => step === 1 ? router.push("/login") : setStep(1)}
+                className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-blue-400 transition-colors mb-10 group"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                {step === 1 ? "Back to Sign In" : "Change Email"}
+              </button>
+            )}
 
-            <h1 className="text-4xl font-black text-white tracking-tighter leading-tight mb-4">Account Recovery</h1>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">
-              Dispatch a secure recovery link to your registered terminal to restore access.
-            </p>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-[2rem] border border-white/5 flex items-center justify-center mb-8">
+                {success ? (
+                  <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+                ) : step === 1 ? (
+                  <UserCircle className="w-10 h-10 text-blue-400" />
+                ) : (
+                  <ShieldCheck className="w-10 h-10 text-indigo-400" />
+                )}
+              </div>
+              <h1 className="text-4xl font-black text-white tracking-tighter leading-tight mb-4">
+                {success ? "Success" : step === 1 ? "Account Recovery" : "Reset Password"}
+              </h1>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">
+                {success ? "Your identity credentials have been restored." : step === 1 ? "Verify your terminal email to proceed." : `Synchronizing new security key for ${email}`}
+              </p>
+            </div>
           </div>
 
-          {!success ? (
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Registered Email</label>
-                <div className="relative group">
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors">
-                    <Mail className="w-5 h-5" />
+          <AnimatePresence mode="wait">
+            {success ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center space-y-8"
+              >
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-relaxed">
+                  Your security configuration is now up to date. You can proceed to the main terminal with your new credentials.
+                </p>
+                <Link
+                  href="/login"
+                  className="block w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.3)]"
+                >
+                  Return to Dashboard
+                </Link>
+              </motion.div>
+            ) : step === 1 ? (
+              <motion.form
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                onSubmit={handleNextStep}
+                className="space-y-8"
+              >
+                <div className="space-y-4">
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Registered Email</label>
+                  <div className="relative group">
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@enterprise.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-blue-500/30 transition-all outline-none shadow-inner"
+                    />
                   </div>
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@enterprise.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                    className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-blue-500/30 transition-all outline-none shadow-inner"
-                  />
                 </div>
-              </div>
 
-              <AnimatePresence>
                 {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-[10px] text-rose-400 font-extrabold uppercase tracking-[0.3em] text-center shadow-lg"
-                  >
+                  <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-[10px] text-rose-400 font-extrabold uppercase tracking-[0.3em] text-center">
                     {error}
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.3)] disabled:opacity-70 group relative overflow-hidden"
+                <button
+                  type="submit"
+                  className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.3)] group relative overflow-hidden"
+                >
+                  Continue <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </motion.form>
+            ) : (
+              <motion.form
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                onSubmit={handleResetPassword}
+                className="space-y-8"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                {loading ? <Loader2 className="w-6 h-6 animate-spin text-white" /> : <>Request Link <Send className="w-5 h-5" /></>}
-              </button>
-            </form>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-6"
-            >
-              <div className="w-24 h-24 bg-emerald-500/10 border border-emerald-500/20 rounded-[2.5rem] flex items-center justify-center text-emerald-400 mx-auto mb-10 shadow-[0_20px_40px_rgba(16,185,129,0.1)]">
-                <CheckCircle2 className="w-12 h-12" />
-              </div>
-              <h3 className="text-2xl font-black text-white tracking-tight mb-4">Link Dispatched</h3>
-              <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-12 opacity-80">
-                A secure synchronization link has been dispatched to <span className="text-blue-400">{email}</span>. Please verify your terminal.
-              </p>
-              <button
-                onClick={() => router.push("/login")}
-                className="w-full h-16 bg-white/[0.03] hover:bg-white/[0.08] text-white border border-white/5 rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] transition-all"
-              >
-                Return to Login
-              </button>
-            </motion.div>
-          )}
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">New Security Key</label>
+                    <div className="relative group">
+                      <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                      <input
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-indigo-500/30 transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Confirm Synchronization</label>
+                    <div className="relative group">
+                      <ShieldCheck className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" />
+                      <input
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-emerald-500/30 transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-[10px] text-rose-400 font-extrabold uppercase tracking-[0.3em] text-center">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.3)] relative overflow-hidden disabled:opacity-70"
+                >
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Restore Access"}
+                </button>
+              </motion.form>
+            )}
+          </AnimatePresence>
 
           <div className="mt-12 pt-10 border-t border-white/5 text-center">
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
-              Security Issue? <Link href="/register" className="text-blue-400 hover:text-blue-300">New Account</Link>
+              {success ? "Synchronized successfully" : "Corporate Identity Protection"}
             </p>
           </div>
         </div>
@@ -158,7 +243,7 @@ export default function ForgotPasswordPage() {
         {/* Security Trust Mark */}
         <div className="mt-12 flex justify-center items-center gap-3 opacity-20">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white">Advanced Identity Protection</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white">Full Identity Restoration Node</span>
         </div>
       </motion.div>
     </div>

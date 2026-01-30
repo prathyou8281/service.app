@@ -35,10 +35,11 @@ export class AuthController {
     );
   }
 
-  @Post('forgot-password')
-  async forgotPassword(@Body('email') email: string) {
-    if (!email) throw new BadRequestException('Email is required');
-    return this.authService.forgotPassword(email);
+  @Post('reset-password')
+  async resetPassword(@Body() body: any) {
+    const { email, newPassword } = body;
+    if (!email || !newPassword) throw new BadRequestException('Email and new password are required');
+    return this.authService.resetPassword(email, newPassword);
   }
 
   @Post('user/register')

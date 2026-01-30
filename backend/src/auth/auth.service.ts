@@ -146,9 +146,38 @@ export class AuthService {
     return { success: true, message: 'Password updated successfully' };
   }
 
-  async forgotPassword(email: string) {
-    // In a real application, this would verify the email exists and send a reset link via email service.
-    // For now, we simulate the logic.
-    return { success: true, message: 'Recovery link sent if email is registered' };
+  async resetPassword(email: string, newPass: string) {
+    const tableMap = {
+      admin: 'admins',
+      vendor: 'vendors',
+      technician: 'technicians',
+      user: 'users',
+    };
+
+    let targetTable = '';
+
+    // Find which table has this email
+    for (const [role, tableName] of Object.entries(tableMap)) {
+      const rows = await this.databaseService.query<any[]>(
+        `SELECT id FROM ${tableName} WHERE email = ? LIMIT 1`,
+        [email]
+      );
+      if (rows.length > 0) {
+        targetTable = tableName;
+        break;
+      }
+    }
+
+    if (!targetTable) {
+      throw new BadRequestException('Account not found with this email');
+    }
+
+    const hashed = await bcrypt.hash(newPass, 10);
+    await this.databaseService.execute(
+      `UPDATE ${targetTable} SET password = ? WHERE email = ?`,
+      [hashed, email]
+    );
+
+    return { success: true, message: 'Identity credentials restored successfully' };
   }
 }
