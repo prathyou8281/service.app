@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, ArrowLeft, Loader2, Key, CheckCircle2, ShieldCheck, Zap, Lock, UserCircle } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, Key, CheckCircle2, ShieldCheck, Zap, Lock, UserCircle, ArrowRight } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState(1); // 1: Email, 2: New Password

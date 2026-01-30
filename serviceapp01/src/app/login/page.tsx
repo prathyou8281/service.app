@@ -159,14 +159,14 @@ export default function LoginPage() {
                   Email Address
                 </label>
                 <div className="relative group/input">
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-blue-400 transition-colors">
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-blue-600 transition-colors">
                     <Mail className="w-5 h-5" />
                   </div>
                   <input
                     type="email"
                     required
-                    placeholder="name@enterprise.com"
-                    className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-blue-500/30 transition-all outline-none"
+                    placeholder="usr@gmail.com"
+                    className="w-full h-16 pl-16 pr-6 bg-[#ebf2ff] border-none rounded-[1.5rem] text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:ring-4 focus:ring-blue-500/20 transition-all outline-none shadow-sm"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
@@ -175,7 +175,7 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="flex justify-between items-center px-1">
+                <div className="flex justify-between items-center px-2">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">
                     Password
                   </label>
@@ -184,14 +184,14 @@ export default function LoginPage() {
                   </Link>
                 </div>
                 <div className="relative group/input">
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-blue-400 transition-colors">
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-blue-600 transition-colors">
                     <Lock className="w-5 h-5" />
                   </div>
                   <input
                     type="password"
                     required
                     placeholder="••••••••"
-                    className="w-full h-16 pl-16 pr-6 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-white/[0.05] focus:border-blue-500/30 transition-all outline-none"
+                    className="w-full h-16 pl-16 pr-6 bg-[#ebf2ff] border-none rounded-[1.5rem] text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:ring-4 focus:ring-blue-500/20 transition-all outline-none shadow-sm"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
@@ -202,7 +202,7 @@ export default function LoginPage() {
               <button
                 disabled={loading}
                 type="submit"
-                className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.3)] disabled:opacity-70 group relative overflow-hidden"
+                className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] text-[13px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.4)] disabled:opacity-70 group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 {loading ? (
