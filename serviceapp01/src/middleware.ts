@@ -18,6 +18,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/admin/login") ||
     pathname.startsWith("/technician/login") ||
     pathname.startsWith("/technician/register") ||
+    pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/about") ||
     pathname.startsWith("/contact") ||
     pathname.startsWith("/services") ||

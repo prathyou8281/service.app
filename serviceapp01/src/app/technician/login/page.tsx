@@ -119,7 +119,7 @@ export default function TechnicianLoginPage() {
                         <div className="space-y-4">
                             <div className="flex justify-between items-center px-1">
                                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">Access Password</label>
-                                <Link href="/forgetpassword" tabIndex={-1} className="text-[11px] font-black text-emerald-400 uppercase tracking-[0.2em] hover:text-emerald-300 transition-colors">Forgot Password?</Link>
+                                <Link href="/forgot-password" tabIndex={-1} className="text-[11px] font-black text-emerald-400 uppercase tracking-[0.2em] hover:text-emerald-300 transition-colors">Forgot Password?</Link>
                             </div>
                             <div className="relative group">
                                 <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
