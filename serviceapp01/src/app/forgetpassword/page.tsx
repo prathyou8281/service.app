@@ -24,11 +24,20 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      // Professional API Simulation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setSuccess(true);
+      const res = await fetch("http://localhost:4000/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      if (res.ok) {
+        setSuccess(true);
+      } else {
+        const data = await res.json();
+        setError(data.message || "Unable to process request.");
+      }
     } catch (err) {
-      setError("Unable to process request. Please try again.");
+      setError("Infrastructure communication failure.");
     } finally {
       setLoading(false);
     }
@@ -36,7 +45,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-[#05070a] flex items-center justify-center p-6 relative overflow-hidden font-sans">
-      {/* 🔹 High-End Corporate Aura Background (Unified with Login) */}
+      {/* 🔹 High-End Corporate Aura Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[160px] animate-pulse" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[160px] animate-pulse" style={{ animationDelay: '3s' }} />
@@ -51,8 +60,8 @@ export default function ForgotPasswordPage() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-[480px] relative z-10"
       >
@@ -95,11 +104,18 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
 
-              {error && (
-                <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-[10px] text-rose-400 font-extrabold uppercase tracking-[0.3em] text-center shadow-lg">
-                  {error}
-                </div>
-              )}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-[10px] text-rose-400 font-extrabold uppercase tracking-[0.3em] text-center shadow-lg"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <button
                 type="submit"
@@ -107,7 +123,7 @@ export default function ForgotPasswordPage() {
                 className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.3)] disabled:opacity-70 group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                {loading ? <Loader2 className="w-6 h-6 animate-spin text-white" /> : <>Request Link <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>}
+                {loading ? <Loader2 className="w-6 h-6 animate-spin text-white" /> : <>Request Link <Send className="w-5 h-5" /></>}
               </button>
             </form>
           ) : (
@@ -121,7 +137,7 @@ export default function ForgotPasswordPage() {
               </div>
               <h3 className="text-2xl font-black text-white tracking-tight mb-4">Link Dispatched</h3>
               <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-12 opacity-80">
-                We've synchronized with <span className="text-blue-400">{email}</span>. Please verify your terminal to restore security credentials.
+                A secure synchronization link has been dispatched to <span className="text-blue-400">{email}</span>. Please verify your terminal.
               </p>
               <button
                 onClick={() => router.push("/login")}

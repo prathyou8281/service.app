@@ -145,4 +145,10 @@ export class AuthService {
 
     return { success: true, message: 'Password updated successfully' };
   }
+
+  async forgotPassword(email: string) {
+    // In a real application, this would verify the email exists and send a reset link via email service.
+    // For now, we simulate the logic.
+    return { success: true, message: 'Recovery link sent if email is registered' };
+  }
 }

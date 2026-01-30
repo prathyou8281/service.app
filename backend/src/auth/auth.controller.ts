@@ -35,6 +35,12 @@ export class AuthController {
     );
   }
 
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    if (!email) throw new BadRequestException('Email is required');
+    return this.authService.forgotPassword(email);
+  }
+
   @Post('user/register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerDto: RegisterDto) {

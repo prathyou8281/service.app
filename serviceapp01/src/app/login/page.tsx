@@ -180,7 +180,7 @@ export default function LoginPage() {
                     Password
                   </label>
                   <Link href="/forgetpassword" tabIndex={-1} className="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] hover:text-blue-300 transition-colors">
-                    Reset?
+                    Forgot Password?
                   </Link>
                 </div>
                 <div className="relative group/input">
