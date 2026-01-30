@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import {
@@ -25,7 +25,10 @@ import {
   Bell,
   CheckCircle,
   ClipboardCheck,
-  Zap
+  Zap,
+  User,
+  Shield,
+  ChevronDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -47,6 +50,19 @@ export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"Overview" | "Users" | "Vendors" | "Technicians" | "Services" | "Approvals" | "System">("Overview");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isAdminProfileOpen, setIsAdminProfileOpen] = useState(false);
+  const adminProfileRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (adminProfileRef.current && !adminProfileRef.current.contains(event.target as Node)) {
+        setIsAdminProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Authenticate Admin
   useEffect(() => {
@@ -146,17 +162,90 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-6">
             <NotificationCenter />
             <div className="h-10 w-px bg-slate-200" />
-            <div className="flex items-center gap-4 bg-white p-2 pr-5 rounded-2xl border border-slate-100 shadow-sm">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-blue-500/20 shrink-0">
-                {(user.name || user.username || 'A')[0].toUpperCase()}
-              </div>
-              <div className="hidden sm:block">
-                <p className="text-sm font-black text-slate-900 leading-none">{user.name || user.username || 'Administrator'}</p>
-                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-1.5 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-                  System Controller
-                </p>
-              </div>
+
+            {/* 🔹 MNC Standard Profile Dropdown */}
+            <div className="relative" ref={adminProfileRef}>
+              <button
+                onClick={() => setIsAdminProfileOpen(!isAdminProfileOpen)}
+                className={`flex items-center gap-4 transition-all p-2 pr-5 rounded-2xl border ${isAdminProfileOpen ? 'bg-blue-50 border-blue-200 shadow-lg' : 'bg-white border-slate-100 shadow-sm hover:border-slate-300'}`}
+              >
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-blue-500/20 shrink-0">
+                  {(user.name || user.username || 'A')[0].toUpperCase()}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <p className="text-sm font-black text-slate-900 leading-none">{user.name || user.username || 'Administrator'}</p>
+                  <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                    System Controller
+                  </p>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isAdminProfileOpen ? 'rotate-180 text-blue-600' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {isAdminProfileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                    className="absolute right-0 mt-4 w-72 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden z-50 origin-top-right"
+                  >
+                    <div className="p-8 bg-gradient-to-br from-slate-900 to-blue-900 text-white relative">
+                      <div className="relative z-10">
+                        <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-xl font-black mb-4">
+                          {(user.name || user.username || 'A')[0].toUpperCase()}
+                        </div>
+                        <h4 className="text-sm font-black uppercase tracking-widest">{user.name || user.username || 'Administrator'}</h4>
+                        <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mt-1">Admin Privilege Node</p>
+                      </div>
+                      <div className="absolute top-0 right-0 p-8 opacity-10">
+                        <ShieldCheck className="w-20 h-20" />
+                      </div>
+                    </div>
+
+                    <div className="p-3">
+                      <button onClick={() => { router.push('/profile'); setIsAdminProfileOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors text-left group">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-200 transition-colors">
+                          <User className="w-5 h-5 text-slate-400 group-hover:text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">Profile Details</p>
+                          <p className="text-[10px] text-slate-400 font-medium">Identity & Personal Meta</p>
+                        </div>
+                      </button>
+
+                      <button onClick={() => { setActiveTab('System'); setIsAdminProfileOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors text-left group">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-200 transition-colors">
+                          <Shield className="w-5 h-5 text-slate-400 group-hover:text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">Security Node</p>
+                          <p className="text-[10px] text-slate-400 font-medium">Access & Encryption</p>
+                        </div>
+                      </button>
+
+                      <div className="h-px bg-slate-100 my-2 mx-4" />
+
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem("userData");
+                          document.cookie = "userData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                          window.location.href = "/admin/login";
+                        }}
+                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-red-50 transition-colors text-left group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center border border-red-100 group-hover:border-red-200 transition-colors">
+                          <LogOut className="w-5 h-5 text-red-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-red-600 uppercase tracking-widest">Logout Admin</p>
+                          <p className="text-[10px] text-red-400 font-medium">Terminate Secure Session</p>
+                        </div>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </header>

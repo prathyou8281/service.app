@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import {
@@ -21,7 +21,14 @@ import {
   Check,
   Ban,
   Loader2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  User,
+  Shield,
+  ChevronDown,
+  Settings,
+  Mail,
+  Fingerprint,
+  Activity
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -33,6 +40,22 @@ export default function VendorDashboard() {
   const [active, setActive] = useState("Overview");
   const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
   const [orderFilter, setOrderFilter] = useState('all');
+
+  // MNC Dropdown States
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setIsNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setIsProfileOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
 
   useEffect(() => {
@@ -226,27 +249,145 @@ export default function VendorDashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <button className="relative p-3 rounded-2xl bg-slate-50 text-slate-400 border border-slate-200 hover:text-indigo-600 hover:bg-slate-100 transition-all group">
+            {/* 🔹 MNC NOTIFICATION POPUP */}
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className={`relative p-3 rounded-2xl transition-all border ${isNotifOpen ? 'bg-indigo-50 border-indigo-200 text-indigo-600 ring-4 ring-indigo-50' : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-indigo-600 hover:bg-slate-100'}`}
+              >
                 <Bell className="w-5.5 h-5.5" />
                 {orders.filter((o: any) => o.status === 'pending').length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-bounce">
                     {orders.filter((o: any) => o.status === 'pending').length}
                   </span>
                 )}
               </button>
+
+              <AnimatePresence>
+                {isNotifOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                    className="absolute right-0 mt-4 w-96 bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden z-50 origin-top-right border border-slate-100"
+                  >
+                    <div className="p-8 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                      <h4 className="font-black text-sm uppercase tracking-widest text-slate-900">Operations Feed</h4>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">LIVE LOG</span>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {orders.filter((o: any) => o.status === 'pending').length > 0 ? (
+                        orders.filter((o: any) => o.status === 'pending').map((order: any) => (
+                          <div key={order.id} className="p-6 border-b border-slate-50 hover:bg-indigo-50/30 transition-colors flex gap-4 group cursor-pointer">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-sm">
+                              <Zap className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black text-slate-900 mb-1 uppercase tracking-tighter">New Service Request</p>
+                              <p className="text-[11px] font-medium text-slate-500 line-clamp-1">{order.service_name}</p>
+                              <p className="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest">Customer: {order.user_name}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-16 text-center">
+                          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                            <ClipboardList className="w-8 h-8 text-slate-200" />
+                          </div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">No pending operations</p>
+                        </div>
+                      )}
+                    </div>
+                    <button onClick={() => { setActive("Orders"); setIsNotifOpen(false); }} className="w-full p-5 text-center text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 transition-colors border-t border-slate-100">
+                      View Full Intelligence Log
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="h-10 w-px bg-slate-100 mx-2" />
 
-            <div className="flex items-center gap-3 pl-2 pr-4 py-2 rounded-2xl bg-slate-50 border border-slate-200 transition-all hover:border-indigo-200 group cursor-pointer">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/20">
-                {user?.username?.charAt(0).toUpperCase()}
+            {/* 🔹 MNC PROFILE DROPDOWN */}
+            <div className="relative" ref={profileRef}>
+              <div
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className={`flex items-center gap-3 pl-2 pr-4 py-2 rounded-2xl border transition-all group cursor-pointer ${isProfileOpen ? 'bg-indigo-50 border-indigo-200 ring-4 ring-indigo-50 shadow-lg' : 'bg-slate-50 border-slate-200 hover:border-indigo-200 shadow-sm'}`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                  {user?.username?.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden md:flex flex-col items-start leading-none">
+                  <span className="text-xs font-black text-slate-900 uppercase tracking-tighter mb-1">{user?.username}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    Admin Access <ChevronDown className={`w-3 h-3 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                  </span>
+                </div>
               </div>
-              <div className="hidden md:flex flex-col items-start leading-none">
-                <span className="text-xs font-black text-slate-900 uppercase tracking-tighter mb-1">{user?.username}</span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Admin Access</span>
-              </div>
+
+              <AnimatePresence>
+                {isProfileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                    className="absolute right-0 mt-4 w-72 bg-white border border-slate-200 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden z-50 origin-top-right"
+                  >
+                    <div className="p-8 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white relative">
+                      <div className="relative z-10">
+                        <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl font-black mb-4 group-hover:rotate-6 transition-transform shadow-xl">
+                          {user?.username?.charAt(0).toUpperCase()}
+                        </div>
+                        <h4 className="text-sm font-black uppercase tracking-widest">{user?.name || user?.username}</h4>
+                        <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest mt-1 flex items-center gap-1.5 italic">
+                          Merchant Node • Verified
+                        </p>
+                      </div>
+                      <div className="absolute top-0 right-0 p-8 opacity-10">
+                        <ShieldCheck className="w-24 h-24" />
+                      </div>
+                    </div>
+
+                    <div className="p-3">
+                      {[
+                        { icon: User, label: "Merchant Profile", desc: "Corporate Identity", path: "/profile" },
+                        { icon: Settings, label: "Node Settings", desc: "Operational Parameters", path: "/profile" },
+                        { icon: Fingerprint, label: "Security Core", desc: "Encryption & Access", path: "/profile" },
+                      ].map((item, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => { router.push(item.path); setIsProfileOpen(false); }}
+                          className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors text-left group"
+                        >
+                          <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-indigo-50 group-hover:border-indigo-200 transition-colors shadow-sm">
+                            <item.icon className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">{item.label}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">{item.desc}</p>
+                          </div>
+                        </button>
+                      ))}
+                      <div className="h-px bg-slate-100 my-2 mx-4" />
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem("userData");
+                          router.push("/vendor/login");
+                        }}
+                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-red-50 transition-colors text-left group"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center border border-red-100 group-hover:border-red-200 transition-colors shadow-sm">
+                          <LogOut className="w-5 h-5 text-red-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-red-600 uppercase tracking-widest">Shutdown Session</p>
+                          <p className="text-[10px] text-red-400 font-medium">Terminate Secure Node</p>
+                        </div>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </header>
