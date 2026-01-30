@@ -1,160 +1,87 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { Zap, Heart, Mail, Phone, MapPin, Search } from "lucide-react";
 
-export default function Footer({
-  logoSrc = "/logo.png",
-  logoAlt = "Brand Logo",
-  brandName = "Your Brand",
-}: {
-  logoSrc?: string;
-  logoAlt?: string;
-  brandName?: string;
-}) {
-  const year = new Date().getFullYear();
+export default function Footer() {
+    return (
+        <footer className="bg-white border-t border-slate-200 pt-20 pb-10">
+            <div className="mx-auto max-w-7xl px-6 lg:px-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
 
-  const linkClass =
-    "text-sm text-foreground/80 hover:text-primary transition-colors";
-  const titleClass =
-    "text-sm font-semibold tracking-tight text-foreground mb-3";
+                    {/* Brand & Mission */}
+                    <div className="space-y-6">
+                        <Link href="/" className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <Zap className="text-white w-5 h-5" />
+                            </div>
+                            <span className="text-xl font-black tracking-tighter">Service<span className="text-blue-600">Hub</span></span>
+                        </Link>
+                        <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                            We provide the world's most reliable doorstep IT services. Our mission is to make professional repairs simple and accessible for everyone.
+                        </p>
+                        <div className="flex gap-4">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
+                                    <Zap className="w-4 h-4" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-  return (
-    <footer className="border-t border-black/5 bg-blue-50/70 backdrop-blur supports-[backdrop-filter]:bg-blue-50/80 dark:border-white/10 dark:bg-neutral-950/70">
-      {/* Top */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-12">
-          {/* Brand */}
-          <div className="md:col-span-4">
-            <div className="flex items-center gap-3">
-              <Image
-                src={logoSrc}
-                alt={logoAlt}
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-xl object-contain"
-              />
-              <span className="text-base font-semibold tracking-tight text-foreground">
-                {brandName}
-              </span>
+                    {/* Quick Links */}
+                    <div>
+                        <h4 className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 mb-8">Navigation</h4>
+                        <ul className="space-y-4">
+                            <li><Link href="/" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">Home</Link></li>
+                            <li><Link href="/explore" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">Find Services</Link></li>
+                            <li><Link href="/about" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">Our Story</Link></li>
+                            <li><Link href="/contact" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">Support Center</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Business */}
+                    <div>
+                        <h4 className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 mb-8">Work With Us</h4>
+                        <ul className="space-y-4">
+                            <li><Link href="/vendor/register" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">Service Merchants</Link></li>
+                            <li><Link href="/technician/register" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">Professional Experts</Link></li>
+                            <li><Link href="/admin/login" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">Admin Portal</Link></li>
+                            <li><Link href="/careers" className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">Global Careers</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Contact */}
+                    <div>
+                        <h4 className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 mb-8">Reach Us</h4>
+                        <ul className="space-y-4">
+                            <li className="flex items-center gap-3 text-sm font-bold text-slate-500">
+                                <MapPin className="w-4 h-4 text-blue-600" />
+                                Global HQ, Tech Park, NY
+                            </li>
+                            <li className="flex items-center gap-3 text-sm font-bold text-slate-500">
+                                <Phone className="w-4 h-4 text-blue-600" />
+                                +1 (555) 000-1111
+                            </li>
+                            <li className="flex items-center gap-3 text-sm font-bold text-slate-500">
+                                <Mail className="w-4 h-4 text-blue-600" />
+                                support@servicehub.com
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {/* Bottom Bar */}
+                <div className="pt-10 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-1">
+                        © 2026 ServiceHub • Crafted with <Heart className="w-3 h-3 text-red-500" /> for the community
+                    </p>
+                    <div className="flex gap-8">
+                        <span className="text-[10px] font-black text-slate-400 hover:text-slate-600 cursor-pointer uppercase tracking-widest">Privacy Policy</span>
+                        <span className="text-[10px] font-black text-slate-400 hover:text-slate-600 cursor-pointer uppercase tracking-widest">SLA Terms</span>
+                    </div>
+                </div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-foreground/70">
-              We craft reliable digital experiences — from websites and apps to
-              digital marketing and brand strategy. Let’s build your online
-              success story together.
-            </p>
-
-            {/* Socials */}
-            <div className="mt-5 flex items-center gap-3">
-              {/* X / Twitter */}
-              <Link
-                href="https://twitter.com/"
-                aria-label="Visit us on X"
-                target="_blank"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-black/10 bg-white/70 shadow-sm hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                  fill="currentColor"
-                >
-                  <path d="M18.244 2H21l-6.53 7.46L22 22h-6.9l-4.34-5.71L5.6 22H3l7.03-8.03L2 2h6.9l3.96 5.26L18.244 2Zm-2.41 18h2.29L8.27 4h-2.3l9.86 16Z" />
-                </svg>
-              </Link>
-
-              {/* Instagram */}
-              <Link
-                href="https://instagram.com/"
-                aria-label="Visit us on Instagram"
-                target="_blank"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-black/10 bg-white/70 shadow-sm hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                  fill="currentColor"
-                >
-                  <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3.5a5.5 5.5 0 1 1 0 11.001 5.5 5.5 0 0 1 0-11Zm0 2a3.5 3.5 0 1 0 .001 7.001A3.5 3.5 0 0 0 12 9.5Zm5.75-.25a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                </svg>
-              </Link>
-
-              {/* Facebook */}
-              <Link
-                href="https://facebook.com/"
-                aria-label="Visit us on Facebook"
-                target="_blank"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-black/10 bg-white/70 shadow-sm hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                  fill="currentColor"
-                >
-                  <path d="M13.5 9H16V6h-2.5C11.57 6 10 7.57 10 9.5V11H8v3h2v7h3v-7h2.09L15.5 11H13v-1.5c0-.28.22-.5.5-.5Z" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-
-          {/* Links */}
-          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-8">
-            <div>
-              <h4 className={titleClass}>Company</h4>
-              <ul className="space-y-2">
-                <li><Link href="/about" className={linkClass}>About</Link></li>
-                <li><Link href="/careers" className={linkClass}>Careers</Link></li>
-                <li><Link href="/press" className={linkClass}>Press</Link></li>
-                <li><Link href="/contact" className={linkClass}>Contact</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className={titleClass}>Services</h4>
-              <ul className="space-y-2">
-                <li><Link href="/services/web-development" className={linkClass}>Website Development</Link></li>
-                <li><Link href="/services/app-development" className={linkClass}>App Development</Link></li>
-                <li><Link href="/services/digital-marketing" className={linkClass}>Digital Marketing</Link></li>
-                <li><Link href="/services/branding" className={linkClass}>Branding & Design</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className={titleClass}>Support</h4>
-              <ul className="space-y-2">
-                <li><Link href="/help" className={linkClass}>Help Center</Link></li>
-                <li><Link href="/status" className={linkClass}>System Status</Link></li>
-                <li><Link href="/privacy" className={linkClass}>Privacy Policy</Link></li>
-                <li><Link href="/terms" className={linkClass}>Terms & Conditions</Link></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom bar */}
-      <div className="border-t border-black/5 bg-blue-100/70 dark:border-white/10 dark:bg-neutral-950/80">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:px-6 lg:px-8">
-          <p className="text-xs text-foreground/70">
-            © {year} {brandName}. All rights reserved.
-          </p>
-          <div className="flex items-center gap-4">
-            <Link href="/privacy" className="text-xs text-foreground/70 hover:text-primary">
-              Privacy
-            </Link>
-            <span className="h-3 w-px bg-foreground/20" />
-            <Link href="/terms" className="text-xs text-foreground/70 hover:text-primary">
-              Terms
-            </Link>
-            <span className="h-3 w-px bg-foreground/20" />
-            <Link href="/cookies" className="text-xs text-foreground/70 hover:text-primary">
-              Cookies
-            </Link>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
+        </footer>
+    );
 }

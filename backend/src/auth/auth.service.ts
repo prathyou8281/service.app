@@ -5,68 +5,107 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { DatabaseService } from '../database/database.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Role } from '../common/enums/role.enum';
 
-interface UserRow {
+interface BaseUser {
   id: number;
-  name: string;
   email: string;
-  phone: string;
   password: string;
-  status?: string;
+  status: string;
+  name: string;
 }
 
 @Injectable()
 export class AuthService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private jwtService: JwtService,
+  ) { }
 
+  private async generateToken(user: any, role: Role) {
+    const payload = {
+      id: user.id,
+      role: role,
+      status: user.status || 'active'
+    };
+    return this.jwtService.sign(payload);
+  }
+
+  private async findUserByEmail(email: string, role: Role): Promise<BaseUser | null> {
+    const tableMap = {
+      [Role.Admin]: 'admins',
+      [Role.Vendor]: 'vendors',
+      [Role.Technician]: 'technicians',
+      [Role.User]: 'users',
+    };
+
+    const tableName = tableMap[role];
+    const rows = await this.databaseService.query<BaseUser[]>(
+      `SELECT * FROM ${tableName} WHERE email = ? LIMIT 1`,
+      [email],
+    );
+
+    return rows.length > 0 ? rows[0] : null;
+  }
+
+  async login(loginDto: LoginDto, role: Role) {
+    const { email, password } = loginDto;
+
+    const user = await this.findUserByEmail(email, role);
+
+    if (!user) {
+      throw new UnauthorizedException(`Invalid email or password for ${role} profile`);
+    }
+
+    // Status Check
+    const inactiveStatuses = ['inactive', 'blocked', 'suspended'];
+    if (inactiveStatuses.includes(user.status?.toLowerCase())) {
+      throw new UnauthorizedException(`Account is ${user.status}. Please contact support.`);
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const access_token = await this.generateToken(user, role);
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: role,
+      status: user.status,
+      access_token: access_token,
+    };
+  }
+
+  // User Registration (Only customers can self-register)
   async register(registerDto: RegisterDto) {
     const { name, email, phone, password } = registerDto;
 
-    // Validate required fields
-    if (!name || !email || !phone || !password) {
-      throw new BadRequestException('Name, email, phone, and password are required');
-    }
-
     try {
-      // Check if email already exists
-      const existingUsers = await this.databaseService.query<UserRow[]>(
-        'SELECT id FROM users WHERE email = ?',
-        [email],
+      const existing = await this.databaseService.query<any[]>(
+        'SELECT id FROM users WHERE email = ? OR phone = ?',
+        [email, phone],
       );
 
-      if (existingUsers.length > 0) {
-        throw new ConflictException('Email already registered');
+      if (existing.length > 0) {
+        throw new ConflictException('Email or phone already registered');
       }
 
-      // Check if phone already exists
-      const existingPhone = await this.databaseService.query<UserRow[]>(
-        'SELECT id FROM users WHERE phone = ?',
-        [phone],
-      );
-
-      if (existingPhone.length > 0) {
-        throw new ConflictException('Phone number already registered');
-      }
-
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Insert user - only these columns: name, email, phone, password, status
       const result = await this.databaseService.execute(
         `INSERT INTO users (name, email, phone, password, status) 
          VALUES (?, ?, ?, ?, 'active')`,
         [name, email, phone, hashedPassword],
       );
 
-      if (!result.insertId || result.affectedRows === 0) {
-        throw new InternalServerErrorException('Failed to create user');
-      }
-
-      // Return user info (without password)
       return {
         id: result.insertId,
         name,
@@ -74,88 +113,36 @@ export class AuthService {
         phone,
       };
     } catch (error) {
-      // Re-throw known exceptions
-      if (
-        error instanceof ConflictException ||
-        error instanceof BadRequestException ||
-        error instanceof InternalServerErrorException
-      ) {
-        throw error;
-      }
-
-      // Handle MySQL connection errors
-      if (error.code === 'ECONNREFUSED' || error.message?.includes('Cannot connect to MySQL')) {
-        throw new InternalServerErrorException('Database connection failed. Please check if MySQL is running.');
-      }
-      if (error.code === 'ER_ACCESS_DENIED_ERROR' || error.message?.includes('MySQL access denied')) {
-        throw new InternalServerErrorException('Database access denied. Please check database credentials.');
-      }
-      if (error.code === 'ER_BAD_DB_ERROR' || error.message?.includes('does not exist')) {
-        throw new InternalServerErrorException('Database does not exist. Please create it first.');
-      }
-      if (error.message?.includes('connection pool is not initialized')) {
-        throw new InternalServerErrorException('Database connection pool is not initialized.');
-      }
-
-      // Handle MySQL duplicate entry errors
-      if (error.code === 'ER_DUP_ENTRY') {
-        if (error.sqlMessage?.includes('email')) {
-          throw new ConflictException('Email already registered');
-        }
-        if (error.sqlMessage?.includes('phone')) {
-          throw new ConflictException('Phone number already registered');
-        }
-        throw new ConflictException('Duplicate entry');
-      }
-
-      // Unknown error
-      console.error('Registration error:', error);
-      throw new InternalServerErrorException('Registration failed: ' + (error.message || 'Unknown error'));
+      if (error instanceof ConflictException) throw error;
+      throw new InternalServerErrorException('Registration failed');
     }
   }
 
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+  async changePassword(userId: number, role: Role, oldPass: string, newPass: string) {
+    const tableMap = {
+      [Role.Admin]: 'admins',
+      [Role.Vendor]: 'vendors',
+      [Role.Technician]: 'technicians',
+      [Role.User]: 'users',
+    };
 
-    try {
-      // Find user by email
-      const users = await this.databaseService.query<UserRow[]>(
-        'SELECT * FROM users WHERE email = ? LIMIT 1',
-        [email],
-      );
+    const tableName = tableMap[role];
+    const rows = await this.databaseService.query<BaseUser[]>(
+      `SELECT password FROM ${tableName} WHERE id = ? LIMIT 1`,
+      [userId],
+    );
 
-      if (users.length === 0) {
-        throw new UnauthorizedException('Invalid email or password');
-      }
+    if (rows.length === 0) throw new BadRequestException('User not found');
 
-      const user = users[0];
+    const isMatch = await bcrypt.compare(oldPass, rows[0].password);
+    if (!isMatch) throw new UnauthorizedException('Current password does not match');
 
-      // Check account status
-      if (user.status && user.status.toLowerCase() !== 'active') {
-        throw new UnauthorizedException('Account is not active');
-      }
+    const hashed = await bcrypt.hash(newPass, 10);
+    await this.databaseService.execute(
+      `UPDATE ${tableName} SET password = ? WHERE id = ?`,
+      [hashed, userId],
+    );
 
-      // Verify password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-
-      if (!isPasswordValid) {
-        throw new UnauthorizedException('Invalid email or password');
-      }
-
-      // Return user info (without password)
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || null,
-        role: 'User',
-      };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      console.error('Login error:', error);
-      throw new InternalServerErrorException('Login failed');
-    }
+    return { success: true, message: 'Password updated successfully' };
   }
 }

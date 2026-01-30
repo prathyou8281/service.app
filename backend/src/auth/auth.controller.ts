@@ -7,84 +7,99 @@ import {
   HttpException,
   UnauthorizedException,
   BadRequestException,
-  InternalServerErrorException,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Role } from '../common/enums/role.enum';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
-  @Post('register')
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(@Request() req, @Body() body: any) {
+    const { oldPassword, newPassword } = body;
+    if (!oldPassword || !newPassword) {
+      throw new BadRequestException('Old and new passwords are required');
+    }
+    return this.authService.changePassword(
+      req.user.id,
+      req.user.role,
+      oldPassword,
+      newPassword,
+    );
+  }
+
+  @Post('user/register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerDto: RegisterDto) {
     try {
-      await this.authService.register(registerDto);
+      const result = await this.authService.register(registerDto);
       return {
         success: true,
         message: 'Registration successful',
+        data: result,
       };
     } catch (error) {
-      // Return errors in the format { success: false, message: "..." }
-      let message = 'Registration failed';
-      let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-
-      if (error.response) {
-        // Handle validation errors from class-validator
-        if (Array.isArray(error.response.message)) {
-          message = error.response.message.join(', ');
-          statusCode = HttpStatus.BAD_REQUEST;
-        } else if (error.response.message) {
-          message = error.response.message;
-          statusCode = error.status || HttpStatus.BAD_REQUEST;
-        }
-      } else if (error.message) {
-        message = error.message;
-        // Map exception types to status codes
-        if (error.status === HttpStatus.CONFLICT) {
-          statusCode = HttpStatus.CONFLICT;
-        } else if (error.status === HttpStatus.BAD_REQUEST) {
-          statusCode = HttpStatus.BAD_REQUEST;
-        } else if (error.status === HttpStatus.INTERNAL_SERVER_ERROR) {
-          statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-      }
-
-      // Throw HttpException with custom response body
       throw new HttpException(
-        {
-          success: false,
-          message: message,
-        },
-        statusCode,
+        { success: false, message: error.message },
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  @Post('login')
+  @Post('admin/login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
+  async adminLogin(@Body() loginDto: LoginDto) {
+    return this.handleLogin(loginDto, Role.Admin);
+  }
+
+  @Post('vendor/login')
+  @HttpCode(HttpStatus.OK)
+  async vendorLogin(@Body() loginDto: LoginDto) {
+    return this.handleLogin(loginDto, Role.Vendor);
+  }
+
+  @Post('technician/login')
+  @HttpCode(HttpStatus.OK)
+  async technicianLogin(@Body() loginDto: LoginDto) {
+    return this.handleLogin(loginDto, Role.Technician);
+  }
+
+  @Post('user/login')
+  @HttpCode(HttpStatus.OK)
+  async userLogin(@Body() loginDto: LoginDto) {
+    return this.handleLogin(loginDto, Role.User);
+  }
+
+  private async handleLogin(loginDto: LoginDto, role: Role) {
     try {
-      const user = await this.authService.login(loginDto);
+      const result = await this.authService.login(loginDto, role);
       return {
         success: true,
-        message: 'Login successful',
-        user,
-        redirect: '/welcome',
+        message: `${role} login successful`,
+        user: result,
+        redirect: this.getRedirectPath(role),
       };
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
+      throw new HttpException(
+        { success: false, message: error.message },
+        error.status || HttpStatus.UNAUTHORIZED,
+      );
+    }
+  }
 
-      // Handle validation errors
-      if (error.response && error.response.message) {
-        throw new BadRequestException(error.response.message);
-      }
-
-      throw new InternalServerErrorException('Login failed');
+  private getRedirectPath(role: Role): string {
+    switch (role) {
+      case Role.Admin: return '/admin/dashboard';
+      case Role.Vendor: return '/vendor/dashboard';
+      case Role.Technician: return '/technician/dashboard';
+      default: return '/welcome';
     }
   }
 }

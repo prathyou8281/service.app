@@ -8,12 +8,12 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private pool: Pool;
   private isInitialized = false;
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) { }
 
   async onModuleInit() {
     try {
       const dbConfig = this.configService.get('database');
-      
+
       // Log configuration (without password) - clear console log showing host + port
       console.log(`🔌 MySQL Connection: host=${dbConfig.host}, port=${dbConfig.port}, database=${dbConfig.database}, user=${dbConfig.user}`);
       this.logger.log(`Connecting to MySQL: ${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`);
@@ -34,7 +34,26 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
       // Test connection by executing a simple query
       await this.testConnection();
-      
+
+      // Ensure profile columns exist
+      try {
+        await this.pool.execute('ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT NULL');
+      } catch (e) { }
+      try {
+        await this.pool.execute('ALTER TABLE vendors ADD COLUMN avatar VARCHAR(255) DEFAULT NULL');
+      } catch (e) { }
+      try {
+        await this.pool.execute('ALTER TABLE technicians ADD COLUMN avatar VARCHAR(255) DEFAULT NULL');
+      } catch (e) { }
+
+      // Ensure payment columns exist (basic migration)
+      try {
+        await this.pool.execute('ALTER TABLE services_histories ADD COLUMN payment_status VARCHAR(20) DEFAULT "pending"');
+      } catch (e) { }
+      try {
+        await this.pool.execute('ALTER TABLE services_histories ADD COLUMN payment_id VARCHAR(100)');
+      } catch (e) { }
+
       this.isInitialized = true;
       this.logger.log('✅ MySQL connection pool created and tested successfully');
     } catch (error) {
@@ -91,7 +110,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.logger.error(`Database query error: ${error.message}`, error.stack);
       this.logger.error(`SQL: ${sql}`);
       this.logger.error(`Params: ${JSON.stringify(params)}`);
-      
+
       // Re-throw with readable error message
       if (error.code === 'ECONNREFUSED') {
         throw new Error('Cannot connect to MySQL server. Please check if MySQL is running and connection settings are correct.');
@@ -102,7 +121,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       if (error.code === 'ER_BAD_DB_ERROR') {
         throw new Error(`Database '${this.configService.get('database')?.database}' does not exist. Please create it first.`);
       }
-      
+
       throw error;
     }
   }
@@ -119,7 +138,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.logger.error(`Database execute error: ${error.message}`, error.stack);
       this.logger.error(`SQL: ${sql}`);
       this.logger.error(`Params: ${JSON.stringify(params)}`);
-      
+
       // Re-throw with readable error message
       if (error.code === 'ECONNREFUSED') {
         throw new Error('Cannot connect to MySQL server. Please check if MySQL is running and connection settings are correct.');
@@ -130,7 +149,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       if (error.code === 'ER_BAD_DB_ERROR') {
         throw new Error(`Database '${this.configService.get('database')?.database}' does not exist. Please create it first.`);
       }
-      
+
       throw error;
     }
   }
