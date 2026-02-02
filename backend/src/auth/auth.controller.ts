@@ -13,6 +13,7 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { Role } from '../common/enums/role.enum';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
@@ -91,6 +92,43 @@ export class AuthController {
     return this.handleLogin(loginDto, Role.Technician);
   }
 
+  @Post('validate-google-user')
+  async validateGoogleUser(@Body() body: { email: string }) {
+    if (!body.email) throw new BadRequestException('Email required');
+    return this.authService.validateGoogleUser(body.email);
+  }
+
+  @Post('complete-google-signup')
+  async completeGoogleSignup(@Body() body: any) {
+    if (!body.email || !body.password || !body.phone) {
+      throw new BadRequestException('Missing required fields');
+    }
+    return this.authService.completeGoogleProfile(body);
+  }
+
+  @Post('google-login')
+  @HttpCode(HttpStatus.OK)
+  async googleLogin(@Body() body: any) {
+    if (!body.email) {
+      throw new BadRequestException('Email is required for Google Login');
+    }
+
+    // Login OR Create user
+    const result = await this.authService.loginWithGoogle(
+      body.email,
+      body.name,
+      body.googleId,
+      body.image
+    );
+
+    return {
+      success: true,
+      message: 'Google login successful',
+      user: result,
+      redirect: this.getRedirectPath(result.role),
+    };
+  }
+
   @Post('user/login')
   @HttpCode(HttpStatus.OK)
   async userLogin(@Body() loginDto: LoginDto) {
@@ -121,5 +159,39 @@ export class AuthController {
       case Role.Technician: return '/technician/dashboard';
       default: return '/welcome';
     }
+  }
+
+  // ==================== FORGOT PASSWORD ENDPOINTS ====================
+
+  @Post('forgot-password/request')
+  @HttpCode(HttpStatus.OK)
+  async requestPasswordReset(@Body() body: { email: string }) {
+    if (!body.email) {
+      throw new BadRequestException('Email is required');
+    }
+    return this.authService.requestPasswordReset(body.email);
+  }
+
+  @Post('forgot-password/verify-otp')
+  @HttpCode(HttpStatus.OK)
+  async verifyPasswordResetOTP(@Body() body: { email: string; otp: string }) {
+    if (!body.email || !body.otp) {
+      throw new BadRequestException('Email and OTP are required');
+    }
+    return this.authService.verifyPasswordResetOTP(body.email, body.otp);
+  }
+
+  @Post('forgot-password/reset')
+  @HttpCode(HttpStatus.OK)
+  async resetPasswordWithOTP(@Body() body: { email: string; otp: string; newPassword: string }) {
+    if (!body.email || !body.otp || !body.newPassword) {
+      throw new BadRequestException('Email, OTP, and new password are required');
+    }
+
+    if (body.newPassword.length < 6) {
+      throw new BadRequestException('Password must be at least 6 characters long');
+    }
+
+    return this.authService.resetPasswordWithOTP(body.email, body.otp, body.newPassword);
   }
 }

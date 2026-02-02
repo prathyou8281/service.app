@@ -36,9 +36,31 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       await this.testConnection();
 
       // Ensure profile columns exist
+
       try {
         await this.pool.execute('ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT NULL');
       } catch (e) { }
+      try {
+        await this.pool.execute('ALTER TABLE users ADD COLUMN google_id VARCHAR(255) DEFAULT NULL');
+      } catch (e) { }
+      try {
+        await this.pool.execute('ALTER TABLE users ADD COLUMN login_provider VARCHAR(50) DEFAULT "local"');
+      } catch (e) { }
+
+      // Make password and phone nullable to support Google Sign-In auto-creation
+      try {
+        await this.pool.execute('ALTER TABLE users MODIFY password VARCHAR(255) NULL');
+      } catch (e) { }
+      try {
+        await this.pool.execute('ALTER TABLE users MODIFY phone VARCHAR(20) NULL');
+      } catch (e) { }
+      try {
+        await this.pool.execute('ALTER TABLE users MODIFY address TEXT NULL');
+      } catch (e) { }
+      try {
+        await this.pool.execute('ALTER TABLE users MODIFY pincode VARCHAR(10) NULL');
+      } catch (e) { }
+
       try {
         await this.pool.execute('ALTER TABLE vendors ADD COLUMN avatar VARCHAR(255) DEFAULT NULL');
       } catch (e) { }

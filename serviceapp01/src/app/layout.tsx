@@ -4,6 +4,8 @@ import "./globals.css";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 
+import Providers from "@/components/Providers";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,16 +31,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-blue-100 selection:text-blue-900`}
       >
-        {/* ✅ Global Unified Header */}
-        <Nav />
+        <Providers>
+          {/* ✅ Global Unified Header */}
+          <Nav />
 
-        {/* ✅ Page Content */}
-        <main className="min-h-screen">
-          {children}
-        </main>
+          {/* ✅ Page Content */}
+          <main className="min-h-screen">
+            {children}
+          </main>
 
-        {/* ✅ Global Unified Footer */}
-        <Footer />
+          {/* ✅ Global Unified Footer */}
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

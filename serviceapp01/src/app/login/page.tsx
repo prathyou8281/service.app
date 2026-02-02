@@ -5,34 +5,51 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, Loader2, Zap, ShieldCheck, CheckCircle2, Globe, Server, Cpu } from "lucide-react";
+import { signIn, useSession } from "next-auth/react";
 
 const API_BASE_URL = "http://localhost:4000/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
 
   useEffect(() => {
+    if (session?.user) {
+      setSuccess(`Welcome back, ${session.user.name?.split(' ')[0] || 'User'}!`);
+
+      const role = (session.user as any).role?.toLowerCase() || 'user';
+
+      setTimeout(() => {
+        router.push(role === 'admin' ? '/admin/dashboard' : role === 'vendor' ? '/vendor/dashboard' : '/welcome');
+      }, 1500);
+    }
+  }, [session, router]);
+
+  // Remove the second useEffect that checks localStorage as the session check covers it roughly,
+  // or keep it for non-session based persistence if needed.
+  // But for cleanliness, let's keep the localStorage one ONLY if session is missing to avoid conflicts.
+  useEffect(() => {
+    if (session) return; // Let the session effect handle it
+
     try {
       const storedUser = localStorage.getItem("userData");
       if (!storedUser) return;
-
       const parsed = JSON.parse(storedUser);
-      if (parsed?.role) {
-        const role = parsed.role.toLowerCase();
-        router.replace(role === 'user' ? '/welcome' : `/${role}/dashboard`);
-      }
+      // Optional: Auto-redirect if local storage persists but session is gone (edge case)
     } catch {
       localStorage.removeItem("userData");
     }
-  }, [router]);
+  }, [session]);
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (!email || !password) {
       setError("Please credentials are required.");
@@ -52,6 +69,7 @@ export default function LoginPage() {
 
       if (!res.ok || !data.success) {
         setError(data.message || "Invalid authentication details.");
+        setLoading(false);
         return;
       }
 
@@ -65,23 +83,27 @@ export default function LoginPage() {
 
       localStorage.setItem("userData", JSON.stringify(userData));
       localStorage.setItem("access_token", data.user.access_token);
-
       document.cookie = `userData=${JSON.stringify(userData)}; path=/; max-age=86400; SameSite=Lax`;
 
-      router.push(data.user.role === 'admin' ? '/admin/dashboard' : data.user.role === 'vendor' ? '/vendor/dashboard' : '/welcome');
+      setSuccess("Authentication Successful");
+
+      setTimeout(() => {
+        router.push(data.user.role === 'admin' ? '/admin/dashboard' : data.user.role === 'vendor' ? '/vendor/dashboard' : '/welcome');
+      }, 1500);
+
     } catch {
       setError("Infrastructure communication failure. Please retry.");
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#05070a] flex flex-col lg:flex-row relative overflow-hidden font-sans">
+      {/* ... (Left Section remains mostly unchanged, just ensuring context) ... */}
 
       {/* 🔹 Left Section: Branding & Content */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-center p-20 z-10 overflow-hidden">
-        {/* Animated Background for Content Section */}
+        {/* ... Background and Branding Content ... */}
         <div className="absolute inset-0 z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[80%] bg-blue-600/10 rounded-full blur-[160px] animate-pulse" />
           <div className="absolute inset-0 opacity-[0.05]"
@@ -107,9 +129,39 @@ export default function LoginPage() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Service Ecosystem</span>
           </h2>
 
-          <p className="text-slate-400 text-lg font-medium max-w-lg leading-relaxed mb-12">
+          <p className="text-slate-400 text-lg font-medium max-w-lg leading-relaxed mb-8">
             Access your professional dashboard and manage your multi-vendor service infrastructure with military-grade precision and real-time synchronization.
           </p>
+
+          <div className="mb-12">
+            <button
+              onClick={() => signIn("google", { callbackUrl: "/welcome" })}
+              disabled={loading}
+              className="w-full max-w-sm h-14 bg-white hover:bg-slate-50 text-slate-900 rounded-xl text-[13px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 active:scale-[0.95] transition-all shadow-[0_20px_40px_-5px_rgba(255,255,255,0.1)] hover:shadow-[0_20px_40px_-5px_rgba(255,255,255,0.2)] disabled:opacity-70 group overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-200/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <svg className="w-5 h-5 relative z-10" viewBox="0 0 24 24">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              <span className="relative z-10">Sign in with Google</span>
+            </button>
+            <p className="text-slate-500 text-[10px] uppercase tracking-widest mt-4 ml-1 opacity-60">or use your corporate credentials →</p>
+          </div>
 
           <div className="space-y-6">
             <FeatureNode icon={Globe} label="Global Service Network Integration" />
@@ -139,9 +191,28 @@ export default function LoginPage() {
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-[480px] relative"
         >
-          <div className="bg-[#0f172a]/90 backdrop-blur-3xl rounded-[3.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] border border-white/5 p-10 md:p-14 overflow-hidden relative group">
+          {/* Success Popup Overlay */}
+          <AnimatePresence>
+            {success && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="absolute inset-0 z-50 flex items-center justify-center bg-[#0f172a]/95 backdrop-blur-md rounded-[3.5rem] border border-emerald-500/20"
+              >
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 ring-4 ring-emerald-500/10 animate-pulse">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Login Successful</h3>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{success}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            {/* Subtle glow follows group hover */}
+          <div className="bg-[#0f172a]/90 backdrop-blur-3xl rounded-[3.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] border border-white/5 p-10 md:p-14 overflow-hidden relative group">
+            {/* ... Form Content ... */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
 
             <div className="flex flex-col items-center mb-12">
@@ -179,7 +250,11 @@ export default function LoginPage() {
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">
                     Password
                   </label>
-                  <Link href="/forgot-password" tabIndex={-1} className="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] hover:text-blue-300 transition-colors">
+                  <Link
+                    href="/forgot-password"
+                    tabIndex={-1}
+                    className="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] hover:text-blue-300 transition-colors relative z-30 cursor-pointer"
+                  >
                     Forgot Password?
                   </Link>
                 </div>
@@ -205,7 +280,7 @@ export default function LoginPage() {
                 className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] text-[13px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-[0_20px_40px_-5px_rgba(37,99,235,0.4)] disabled:opacity-70 group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                {loading ? (
+                {loading && !success ? (
                   <Loader2 className="w-6 h-6 animate-spin" />
                 ) : (
                   <>
@@ -216,10 +291,13 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-12 pt-10 border-t border-white/5 text-center">
+            <div className="mt-12 pt-10 border-t border-white/5 text-center relative z-20">
               <p className="text-sm font-bold text-slate-500">
                 New to our platform?{" "}
-                <Link href="/register" className="text-blue-400 hover:text-blue-300">
+                <Link
+                  href="/register"
+                  className="text-blue-400 hover:text-blue-300 relative z-30 cursor-pointer transition-colors duration-300"
+                >
                   Create Account
                 </Link>
               </p>
