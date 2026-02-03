@@ -77,7 +77,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
       </div>
 
-      <main className="relative z-10 mx-auto max-w-[1400px] px-6 lg:px-12 pt-32 lg:pt-48 pb-20">
+      <main className="relative z-10 mx-auto max-w-[1400px] px-6 lg:px-12 py-12 lg:py-24">
         <div className="flex flex-col lg:flex-row items-center gap-20">
 
           {/* LEFT SIDE: CONTENT */}
